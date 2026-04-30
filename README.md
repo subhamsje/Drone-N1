@@ -24,32 +24,32 @@ The result is a system that **perceives, reasons, forecasts, and recommends acti
 
 ```mermaid
 flowchart TB
-    subgraph Physical Layer
+    subgraph Physical_Layer
         UAV[UAV / Flight Controller]
     end
 
-    subgraph Communication Layer
+    subgraph Communication_Layer
         MAV[MAVLink Stream]
         WS[WebSocket Interface]
     end
 
-    subgraph Perception Layer
+    subgraph Perception_Layer
         PARSER[Telemetry Parser]
-        FUSION[Sensor Fusion (EKF)]
+        FUSION[Sensor Fusion - EKF]
     end
 
-    subgraph Cognitive Layer
+    subgraph Cognitive_Layer
         DT[Digital Twin Simulator]
         PRED[Temporal Prediction Model]
         ANOM[Anomaly Detection Engine]
     end
 
-    subgraph Reasoning Layer
+    subgraph Reasoning_Layer
         RISK[Probabilistic Risk Engine]
         DEC[Decision Synthesis Engine]
     end
 
-    subgraph Visualization Layer
+    subgraph Visualization_Layer
         UI[3D Digital Twin Interface]
     end
 
