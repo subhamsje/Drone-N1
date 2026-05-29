@@ -190,10 +190,6 @@ Drone-N1 is evolving from a project into the **Standard Operating System for Aut
   <img src="https://github-readme-streak-stats.herokuapp.com/?user=subhamsje&theme=tokyonight" alt="Streak" />
 </p>
 
-<p align="center">
-  <img src="https://github-readme-activity-graph.vercel.app/graph?username=subhamsje&theme=tokyonight" width="100%" alt="Activity Graph" />
-</p>
-
 ---
 
 <p align="center">
