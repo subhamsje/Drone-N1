@@ -1,0 +1,29 @@
+FROM nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3
+
+WORKDIR /opt/altaria
+
+# Install system dependencies for ROS2 Humble & Edge ML
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl gnupg2 lsb-release build-essential pkg-config \
+    libffi-dev libssl-dev cmake python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add Altaria OS dependencies
+COPY backend/requirements.txt /opt/altaria/backend/requirements.txt
+RUN pip3 install --no-cache-dir -r backend/requirements.txt
+
+# Install TensorRT Python bindings (assuming Orin environment provides base TRT libs)
+# RUN pip3 install tensorrt
+
+COPY backend /opt/altaria/backend
+COPY altaria_os /opt/altaria/altaria_os
+COPY engines /opt/altaria/engines
+COPY config /opt/altaria/config
+COPY core /opt/altaria/core
+
+ENV PYTHONPATH=/opt/altaria
+ENV ALTARIA_EDGE_MODE=1
+ENV ALTARIA_UAV_ID="ALTARIA-ORIN-01"
+
+# Edge runtime requires no inbound ports, it initiates outbound MAVLink/ROS2 and optional telemetry sync
+CMD ["python3", "backend/edge/runtime.py"]

@@ -1,0 +1,153 @@
+syntax = "proto3";
+
+package altaria.v1;
+
+option go_package = "github.com/altaria/n1/grpc/altaria/v1";
+
+// ── Telemetry ──────────────────────────────────────────────────────────────
+
+message TelemetryFrame {
+  string uav_id = 1;
+  double timestamp = 2;
+  double altitude_m = 3;
+  double battery_pct = 4;
+  double rpm = 5;
+  repeated double imu = 6;
+  double risk_value = 7;
+  double anomaly_score = 8;
+}
+
+message StreamTelemetryRequest {
+  string uav_id = 1;
+  int32 batch_size = 2;
+}
+
+service TelemetryService {
+  rpc Ingest(TelemetryFrame) returns (IngestResponse);
+  rpc StreamIngest(stream TelemetryFrame) returns (IngestResponse);
+  rpc Subscribe(StreamTelemetryRequest) returns (stream TelemetryFrame);
+}
+
+message IngestResponse {
+  bool accepted = 1;
+  string event_id = 2;
+}
+
+// ── Recovery ─────────────────────────────────────────────────────────────────
+
+message RecoveryRequest {
+  string uav_id = 1;
+  string policy = 2;
+  string reason = 3;
+}
+
+message RecoveryWorkflow {
+  string workflow_id = 1;
+  string uav_id = 2;
+  string policy = 3;
+  string status = 4;
+  double started_at = 5;
+}
+
+service RecoveryService {
+  rpc Trigger(RecoveryRequest) returns (RecoveryWorkflow);
+  rpc GetActive(RecoveryQuery) returns (RecoveryList);
+}
+
+message RecoveryQuery { string uav_id = 1; }
+message RecoveryList { repeated RecoveryWorkflow workflows = 1; }
+
+// ── Fleet ────────────────────────────────────────────────────────────────────
+
+message FleetHealthRequest {
+  string fleet_id = 1;
+}
+
+message SwarmMember {
+  string uav_id = 1;
+  double battery = 2;
+  double health_score = 3;
+  string risk_level = 4;
+}
+
+message FleetHealthResponse {
+  string fleet_id = 1;
+  double fleet_health_score = 2;
+  int32 active_members = 3;
+  bool threat_propagated = 4;
+  repeated SwarmMember members = 5;
+}
+
+service FleetService {
+  rpc GetHealth(FleetHealthRequest) returns (FleetHealthResponse);
+}
+
+// ── Mission ────────────────────────────────────────────────────────────────────
+
+message SemanticMission {
+  string mission_id = 1;
+  string fleet_id = 2;
+  string name = 3;
+  string intent = 4;
+  repeated string objectives = 5;
+  string status = 6;
+}
+
+message CreateMissionRequest {
+  string fleet_id = 1;
+  string name = 2;
+  string intent = 3;
+  repeated string objectives = 4;
+  repeated string uav_ids = 5;
+}
+
+service MissionService {
+  rpc Create(CreateMissionRequest) returns (SemanticMission);
+  rpc Get(MissionQuery) returns (SemanticMission);
+}
+
+message MissionQuery { string mission_id = 1; }
+
+// ── Mission Intelligence (Altaria layer above autopilot) ─────────────────────
+
+message MissionWaypoint {
+  double lat = 1;
+  double lon = 2;
+  double alt_m = 3;
+  string label = 4;
+}
+
+message MissionPlan {
+  string plan_id = 1;
+  string intent = 2;
+  repeated MissionWaypoint waypoints = 3;
+  double max_risk = 4;
+  string recovery_strategy = 5;
+}
+
+message PlanMissionRequest {
+  string intent = 1;
+  double lat = 2;
+  double lon = 3;
+  double alt_m = 4;
+}
+
+message AdvanceMissionRequest {
+  string mission_id = 1;
+  string phase = 2;
+  string operator = 3;
+}
+
+message MissionLifecycleState {
+  string mission_id = 1;
+  string phase = 2;
+  MissionPlan plan = 3;
+  bool validation_passed = 4;
+  bool approved = 5;
+}
+
+service MissionIntelligenceService {
+  rpc Plan(PlanMissionRequest) returns (MissionLifecycleState);
+  rpc Advance(AdvanceMissionRequest) returns (MissionLifecycleState);
+  rpc Get(MissionQuery) returns (MissionLifecycleState);
+}

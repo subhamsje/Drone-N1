@@ -40,6 +40,12 @@ from engines.action_executor import ActionExecutor
 from engines.explainability import HybridExplainabilityEngine
 from streaming.streamer import StreamingLayer
 
+# Altaria OS Core Upgrades
+from engines.cybersecurity import CybersecurityEngine
+from engines.navigation import NavigationSuite
+from engines.fleet import FleetCognitionLayer
+
+
 # ── Logging: suppress sub-module noise, keep our structured output ────────────
 logging.basicConfig(level=logging.WARNING)
 core_logger = logging.getLogger("TWIN")
@@ -83,6 +89,12 @@ class UAVHybridEngine:
         self.action_exec  = ActionExecutor(config)
         self.explainer    = HybridExplainabilityEngine(config)
         self.streamer     = StreamingLayer(config)
+
+        # Altaria OS Core Upgrades
+        self.cybersecurity = CybersecurityEngine(config)
+        self.navigation   = NavigationSuite()
+        self.fleet        = FleetCognitionLayer()
+
 
         # Warm-started MPC command (updated every cycle by MPC output)
         self._u_cmd = np.full(4, config.physics.hover_thrust, dtype=float)
@@ -148,6 +160,21 @@ class UAVHybridEngine:
         # ── 2. EKF posterior (state source for all downstream) ────────────
         ekf_state = self.ekf.get_state()
 
+        # ── Altaria OS Core Upgrades: Cybersecurity & Navigation ──────────
+        cyber_status = self.cybersecurity.evaluate_threat(
+            ekf_state.x[3:6],
+            physics_frame.imu,
+            self._u_cmd,
+            self.physics.time,
+            self.cfg.ekf.dt
+        )
+
+        wind_vector = np.array([self.physics._wind[0], self.physics._wind[1], self.physics._wind[2]])
+        nav_risk = self.navigation.evaluate_navigation(
+            (physics_frame.pos_x, physics_frame.pos_y),
+            wind_vector
+        )
+
         # ── 3. Digital Twin — sliding window + ROC ────────────────────────
         telemetry = self.digital_twin.update(physics_frame, ekf_state)
         window    = self.digital_twin.get_window()
@@ -178,6 +205,12 @@ class UAVHybridEngine:
             rpm_roc=self.digital_twin.rpm_roc,
         )
 
+        # Inject cyber threat level and weather hazards into risk assessment
+        if cyber_status.is_spoofed:
+            risk.value = min(1.0, risk.value + 0.35)
+        if nav_risk.weather_hazard_level > 0.70:
+            risk.value = min(1.0, risk.value + 0.20)
+
         # ── 8. TTF ────────────────────────────────────────────────────────
         grad = self.risk_engine.get_risk_gradient()
         ttf  = self.ttf_est.estimate(risk, physics_frame.battery, grad)
@@ -195,7 +228,21 @@ class UAVHybridEngine:
             risk=risk, ttf=ttf, anomaly=anomaly,
             battery=physics_frame.battery,
             risk_gradient=grad, mpc_output=mpc_out,
+            ekf_confidence=ekf_state.confidence,
+            cyber_threat=cyber_status.threat_level
         )
+
+        # ── Altaria OS Core Upgrades: Swarm & Fleet Health Scoring ────────
+        fleet_status = self.fleet.evaluate_fleet(
+            physics_frame.battery,
+            risk.value,
+            decision.action.value,
+            self._cycle
+        )
+
+        if fleet_status.swarm_threat_propagated:
+            # Distributed anomaly warning propagation increases local risk
+            risk.value = min(1.0, risk.value + 0.15)
 
         # ── 11. Action Execution → CLOSED LOOP ───────────────────────────
         effect, state, _ = self.action_exec.execute(
@@ -217,6 +264,7 @@ class UAVHybridEngine:
             telemetry=telemetry, prediction=prediction, anomaly=anomaly,
             risk=risk, ttf=ttf, decision=decision, explainability=explanation,
             action_effect=effect, system_state=state, cycle=self._cycle,
+            cybersecurity=cyber_status, navigation=nav_risk, fleet=fleet_status
         )
 
     # ── Terminal Output ───────────────────────────────────────────────────────

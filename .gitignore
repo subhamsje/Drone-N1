@@ -1,3 +1,6 @@
 .DS_Store
 *.zip
 trial frames/
+.venv_deps/
+__pycache__/
+*.pyc

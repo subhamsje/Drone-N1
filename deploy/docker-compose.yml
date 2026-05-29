@@ -1,0 +1,79 @@
+# Altaria N1 — Production / Regional Telemetry Cloud
+# Cloud infrastructure for fleet telemetry lake and orchestration
+
+services:
+  altaria-regional-gateway:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.backend
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql://altaria:altaria@postgres:5432/altaria
+      - CLICKHOUSE_URL=clickhouse://default:@clickhouse:9000/altaria_telemetry
+      - ALTARIA_EVENT_BACKEND=kafka
+    depends_on:
+      - redis
+      - clickhouse
+      - redpanda
+    networks:
+      - altaria
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - altaria
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: altaria
+      POSTGRES_PASSWORD: altaria
+      POSTGRES_DB: altaria
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - altaria
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    environment:
+      CLICKHOUSE_DB: altaria_telemetry
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ''
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    networks:
+      - altaria
+
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:latest
+    command: redpanda start --overprovisioned --smp 1 --memory 512M --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+    ports:
+      - "19092:19092"
+    networks:
+      - altaria
+
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - altaria
+
+networks:
+  altaria:
+    driver: bridge
+
+volumes:
+  pgdata:
+  clickhouse_data:

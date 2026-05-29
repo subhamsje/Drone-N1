@@ -126,6 +126,8 @@ class DecisionOutput:
     confidence:      float
     score_breakdown: Dict[str, float]
     mpc_output:      Optional[MPCOutput] = None
+    aggression_mode: str = "NOMINAL"
+
 
 
 @dataclass
@@ -168,11 +170,15 @@ class SystemSnapshot:
     explainability: ExplainabilityOutput
     action_effect: ActionEffect
     system_state:  SystemState
+    cybersecurity: Optional[Any] = None
+    navigation:    Optional[Any] = None
+    fleet:         Optional[Any] = None
 
     def to_dict(self) -> Dict[str, Any]:
         m = self.decision.mpc_output
         ex = self.explainability
-        return {
+        
+        d = {
             "timestamp":   self.timestamp,
             "cycle":       self.cycle,
             "system_state": self.system_state.value,
@@ -219,6 +225,7 @@ class SystemSnapshot:
                 "mpc_iters":  m.iterations if m else 0,
                 "mpc_cost":   m.cost if m else 0.0,
                 "scores":     self.decision.score_breakdown,
+                "aggression_mode": self.decision.aggression_mode,
             },
             "explainability": {
                 "root_cause":      ex.root_cause,
@@ -232,3 +239,52 @@ class SystemSnapshot:
                 "description":     self.action_effect.description,
             },
         }
+
+        if self.cybersecurity is not None:
+            d["cybersecurity"] = {
+                "threat_level":     self.cybersecurity.threat_level,
+                "is_spoofed":       self.cybersecurity.is_spoofed,
+                "firewall_blocks":  self.cybersecurity.firewall_blocks,
+                "active_alarms":    self.cybersecurity.active_alarms,
+            }
+        
+        if self.navigation is not None:
+            d["navigation"] = {
+                "weather_hazard":   self.navigation.weather_hazard_level,
+                "landing_x":        self.navigation.safe_landing_site.coord[0],
+                "landing_y":        self.navigation.safe_landing_site.coord[1],
+                "landing_safety":   self.navigation.safe_landing_site.safety_score,
+                "terrain_type":     self.navigation.safe_landing_site.terrain_type,
+            }
+
+        if self.fleet is not None:
+            d["fleet"] = {
+                "fleet_health":     self.fleet.fleet_health_score,
+                "active_members":   self.fleet.active_swarm_members,
+                "threat_propagated": self.fleet.swarm_threat_propagated,
+                "member_states": [
+                    {
+                        "uav_id":        m.uav_id,
+                        "battery":       m.battery,
+                        "health_score":  m.health_score,
+                        "active_action": m.active_action,
+                        "risk_level":    m.risk_level
+                    } for m in self.fleet.member_states
+                ]
+            }
+
+        return d
+
+    def enrich_os_fields(self, os_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Merge Altaria OS kernel outputs into snapshot dict."""
+        d = self.to_dict()
+        for key in (
+            "sensor_trust", "inference", "survival", "cognition", "vision",
+            "route_governance", "twin_physics", "fleet_intelligence",
+            "autonomy_mode", "os_version", "operator_required",
+        ):
+            if key in os_data:
+                d[key] = os_data[key]
+        if os_data.get("decision"):
+            d["decision"] = {**d.get("decision", {}), **os_data["decision"]}
+        return d

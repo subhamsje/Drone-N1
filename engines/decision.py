@@ -189,6 +189,8 @@ class DecisionIntelligenceLayer:
         battery: float,
         risk_gradient: float,
         mpc_output: MPCOutput,
+        ekf_confidence: float = 1.0,
+        cyber_threat: float = 0.0,
     ) -> DecisionOutput:
         r = risk.value
         t = max(0.0, 1.0 - ttf.minutes / 8.0)    # urgency
@@ -200,6 +202,17 @@ class DecisionIntelligenceLayer:
         mpc_return     = float(mpc_output.implied_action == DecisionAction.RETURN_HOME)
         mpc_converged  = float(mpc_output.converged)
         mpc_cost_norm  = min(1.0, mpc_output.cost / 10000.0)
+
+        # ── dynamic flight aggression mode selection ─────────────────────
+        unc_val = (1.0 - ekf_confidence) * 0.35 + (1.0 - ttf.confidence) * 0.25 + anomaly.uncertainty * 0.20 + cyber_threat * 0.40
+        if unc_val > 0.70 or risk.level == RiskLevel.CRITICAL or cyber_threat > 0.60:
+            agg_mode = "SURVIVAL"
+        elif unc_val > 0.45 or risk.level == RiskLevel.HIGH or cyber_threat > 0.30:
+            agg_mode = "DEFENSIVE"
+        elif unc_val > 0.20 or risk.level == RiskLevel.MEDIUM:
+            agg_mode = "CONSERVATIVE"
+        else:
+            agg_mode = "NOMINAL"
 
         # ── raw factor scores (all in [0,1] range) ────────────────────────
         critical_boost = 1.5 if risk.level == RiskLevel.CRITICAL else 1.0
@@ -221,6 +234,14 @@ class DecisionIntelligenceLayer:
         none_score = max(0.0, (1.0 - r) * (1.0 - 0.5*a) * (1.0 - 0.3*g)) * (
             1.05 if mpc_converged and mpc_output.cost < 1000.0 else 1.0
         )
+
+        # In defensive/survival modes, aggressively prioritize return-to-home or emergency landing
+        if agg_mode == "SURVIVAL":
+            emergency_score *= 1.35
+            none_score *= 0.1
+        elif agg_mode == "DEFENSIVE":
+            return_score *= 1.20
+            none_score *= 0.4
 
         scores = {
             DecisionAction.EMERGENCY_LAND: emergency_score,
@@ -274,4 +295,5 @@ class DecisionIntelligenceLayer:
             confidence      = min(1.0, raw_confidence),
             score_breakdown = {k.value: round(float(v), 4) for k, v in scores.items()},
             mpc_output      = mpc_output,
+            aggression_mode = agg_mode,
         )

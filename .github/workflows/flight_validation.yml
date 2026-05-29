@@ -1,0 +1,51 @@
+name: Altaria Flight Validation Campaign
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * *' # Run nightly to accumulate flight hours
+
+jobs:
+  sitl-validation:
+    runs-on: ubuntu-latest
+    services:
+      # ClickHouse Telemetry Lake
+      clickhouse:
+        image: clickhouse/clickhouse-server:latest
+        ports:
+          - 8123:8123
+          - 9000:9000
+      # Headless Gazebo & PX4 Environment
+      px4-sitl:
+        image: jonasvautherin/px4-gazebo-headless:1.13.2
+        ports:
+          - 14540:14540/udp
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Dependencies
+      run: |
+        pip install -r backend/requirements.txt
+        pip install mavsdk
+        
+    - name: Run Scenario 1 - GPS Loss
+      run: python validation/scenarios/sitl_gps_loss.py
+      
+    - name: Run Scenario 2 - Motor Failure
+      run: python validation/scenarios/sitl_motor_failure.py
+      
+    - name: Run Scenario 3 - Swarm Scale (25 Nodes)
+      run: python validation/scenarios/swarm_scale_test.py
+
+    - name: Upload Audit Evidence
+      uses: actions/upload-artifact@v3
+      with:
+        name: certification-evidence
+        path: validation/reports/*.json

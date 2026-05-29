@@ -1,0 +1,20 @@
+# Altaria N1 Backend Platform
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.5.0
+httpx>=0.26.0
+numpy>=1.24.0
+scipy>=1.11.0
+
+# Production autonomy (install per deployment target)
+# mavsdk>=2.0.0          # real PX4 command authority
+# pymavlink>=2.4.40
+# ultralytics>=8.0.0     # YOLOv8 perception
+# onnxruntime-gpu>=1.16.0
+# redis>=5.0.0
+# aiokafka>=0.10.0
+# asyncpg>=0.29.0
+# prometheus-client>=0.19.0
+
+# Cognitive engines (repo root)
+# Install from repo: pip install -r backend/requirements.txt

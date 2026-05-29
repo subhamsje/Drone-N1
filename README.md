@@ -1,405 +1,97 @@
-# 🚀 Cognitive UAV Ground Control System (C-GCS)
+# 🛰️ Drone-N1: Altaria Cognitive OS & Hybrid Digital Twin
 
-> **A real-time, model-driven, AI-augmented Ground Control System enabling predictive autonomy, system introspection, and intelligent decision orchestration for unmanned aerial platforms.**
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Engine: Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Architecture: Hybrid Digital Twin](https://img.shields.io/badge/Architecture-Hybrid%20Digital%20Twin-red.svg)]()
+[![OS: Altaria Cognitive](https://img.shields.io/badge/OS-Altaria%20Cognitive-purple.svg)]()
 
----
-
-## 🧠 Executive Summary
-
-Traditional Ground Control Systems (GCS) are fundamentally **observational interfaces**—they visualize telemetry but lack semantic understanding.
-
-This system introduces a **Cognitive GCS**, integrating:
-
-* **State-space estimation**
-* **Digital twin simulation**
-* **Probabilistic anomaly detection**
-* **Predictive failure modeling**
-* **Risk-aware decision synthesis**
-
-The result is a system that **perceives, reasons, forecasts, and recommends actions in real time**.
+> **The next generation of UAV autonomy.** A high-fidelity cognitive control system featuring a 20D nonlinear physics engine, real-time latent world models, and the Altaria OS kernel for safety-critical swarm operations.
 
 ---
 
-## 🏗️ System Architecture (Layered Cognitive Stack)
+## 🛠️ System Architecture: The "Sequential Intelligence" Pipeline
+
+Drone-N1 operates on a fixed 200ms timestep loop, executing a sophisticated sequential pipeline that bridges the gap between raw physics and high-level cognitive reasoning.
 
 ```mermaid
-flowchart TB
-    subgraph Physical_Layer
-        UAV[UAV / Flight Controller]
-    end
-
-    subgraph Communication_Layer
-        MAV[MAVLink Stream]
-        WS[WebSocket Interface]
-    end
-
-    subgraph Perception_Layer
-        PARSER[Telemetry Parser]
-        FUSION[Sensor Fusion - EKF]
-    end
-
-    subgraph Cognitive_Layer
-        DT[Digital Twin Simulator]
-        PRED[Temporal Prediction Model]
-        ANOM[Anomaly Detection Engine]
-    end
-
-    subgraph Reasoning_Layer
-        RISK[Probabilistic Risk Engine]
-        DEC[Decision Synthesis Engine]
-    end
-
-    subgraph Visualization_Layer
-        UI[3D Digital Twin Interface]
-    end
-
-    UAV --> MAV --> WS --> PARSER --> FUSION
-    FUSION --> DT
-    FUSION --> PRED
-    FUSION --> ANOM
-    DT --> RISK
-    PRED --> RISK
-    ANOM --> RISK
-    RISK --> DEC
-    DEC --> UI
+graph LR
+    P[Physics 20D] --> E[EKF Rollback]
+    E --> DT[Digital Twin]
+    DT --> Pred[LSTM+MC Prediction]
+    Pred --> Anom[Fused Anomaly]
+    Anom --> Risk[4-Quadrant Risk]
+    Risk --> MPC[Adaptive MPC]
+    MPC --> XAI[Hybrid XAI]
+    XAI --> WS[WebSocket Stream]
 ```
 
 ---
 
-## 🧩 Core System Components
+## ✨ Core Pillars of Intelligence
 
-### 📡 1. Telemetry Ingestion & Normalization
+### 🧠 Altaria Cognitive OS
+A specialized kernel designed for high-stakes autonomy. Includes:
+*   **Meta-Cognition:** Real-time self-monitoring and strategic evolution.
+*   **Formal Verification:** Evidence-based DAGs for operational compliance.
+*   **Mixed Criticality Runtime:** Guaranteed execution of safety-critical tasks.
 
-* MAVLink protocol decoding with asynchronous streaming
-* Time-synchronized state reconstruction
-* Noise-aware preprocessing pipelines
+### 🌐 Foundation World Models
+Leverages latent generative simulation to forecast consequences before taking action.
+*   **Generative Survivability:** Predicting comm-collapse and adversarial escalation.
+*   **Latent State Decoding:** Compressing complex airspace data into actionable latent manifolds.
 
----
-
-### 🧠 2. State Estimation (Extended Kalman Filter)
-
-Implements nonlinear state-space estimation:
-
-* Multi-sensor fusion (IMU, GPS, barometer)
-* Bias correction and drift mitigation
-* Continuous-time → discrete-time transformation
-
-Outputs:
-
-* Position, velocity, orientation
-* Covariance matrices representing uncertainty
+### 🛡️ Cyber-Resilient Swarm Operations
+Advanced fleet cognition for distributed intelligence.
+*   **Collective Intelligence:** Swarm-level learning and decision-making.
+*   **Cybersecurity Engine:** Integrated threat detection and active response protocols.
 
 ---
 
-### 🔮 3. Digital Twin (Model-Based Simulation)
+## 🚀 Quick Start
 
-A **physics-informed virtual replica** of the UAV:
+### Prerequisites
+*   Python 3.10+
+*   Node.js (for the Cognitive Interface frontend)
 
-* Flight dynamics approximation
-* Battery discharge modeling
-* Motor thrust degradation simulation
+### Installation
+```bash
+git clone https://github.com/subhamsje/Drone-N1.git
+cd Drone-N1
+pip install -r requirements.txt
+```
 
-Supports:
+### Running the Digital Twin
+```bash
+# Standard 80s real-time simulation
+python main.py
 
-* Forward simulation
-* Counterfactual analysis (*“what if motor 2 fails?”*)
+# Run fast demo with induced fault at 3s
+python main.py --demo
 
----
-
-### 📉 4. Predictive Intelligence Engine
-
-Time-series forecasting using:
-
-* Sliding window temporal features
-* Regression-based or sequence models
-
-Predicts:
-
-* Battery depletion trajectory
-* Motor efficiency decay
-* Signal integrity degradation
-
----
-
-### 🚨 5. Anomaly Detection Engine
-
-Hybrid detection framework:
-
-* Statistical residual analysis (baseline deviation)
-* Temporal inconsistency detection
-* Threshold-adaptive alerting
-
-Detects:
-
-* Sensor drift
-* Sudden voltage collapse
-* Mechanical inconsistencies
-
----
-
-### ⚠️ 6. Probabilistic Risk Engine
-
-Computes a **dynamic risk score**:
-
-* Integrates:
-
-  * Current state estimate
-  * Predicted trajectories
-  * Detected anomalies
-* Uses weighted risk aggregation
-
-Outputs:
-
-* Continuous risk metric ∈ [0,1]
-* Categorized severity levels
-
----
-
-### 🤖 7. Decision Synthesis Engine
-
-Transforms system intelligence into **actionable advisories**:
-
-* Rule-based + heuristic reasoning
-* Context-aware recommendations
-
-Examples:
-
-* *Initiate Return-to-Home*
-* *Throttle reduction advised*
-* *Immediate landing required*
-
----
-
-### 🖥️ 8. Immersive 3D Digital Twin Interface
-
-* Real-time WebGL rendering (Three.js / R3F)
-* Component-level semantic highlighting
-* Event-driven alert overlays
-* Smooth state interpolation animations
-
----
-
-## 🔁 End-to-End Dataflow
-
-```mermaid
-sequenceDiagram
-    participant UAV
-    participant Backend
-    participant CognitiveLayer
-    participant UI
-
-    UAV->>Backend: Raw MAVLink Telemetry
-    Backend->>CognitiveLayer: Normalized State
-    CognitiveLayer->>CognitiveLayer: Estimate + Predict + Detect
-    CognitiveLayer->>Backend: Insights + Risk Scores
-    Backend->>UI: WebSocket Stream
-    UI->>Operator: Visual + Semantic Feedback
+# Headless mode (disable WebSocket server)
+python main.py --no-ws
 ```
 
 ---
 
-## ⚡ Technology Stack
-
-### Backend
-
-* FastAPI (high-performance async API)
-* WebSockets (low-latency streaming)
-* Python
-
-### Intelligence Layer
-
-* NumPy / SciPy
-* Custom EKF implementation
-* Statistical + ML-based models
-
-### Frontend
-
-* Three.js / React Three Fiber
-* GPU-accelerated rendering (WebGL)
+## 📊 Cognitive Control Interface
+The system streams high-frequency telemetry via WebSockets to a dedicated HTML5 interface (`uav_cognitive_control_interface.html`), providing:
+*   Real-time 20D state visualization.
+*   Explainability (XAI) heatmaps for MPC decisions.
+*   Risk quadrant monitoring.
+*   Swarm health telemetry.
 
 ---
 
-## 🧪 Representative Scenario
-
-### 🔧 Motor Degradation Event
-
-1. Gradual RPM variance detected
-2. Residual error exceeds adaptive threshold
-3. Predictive model forecasts failure horizon
-4. Risk score escalates to critical
-5. Decision engine triggers:
-   👉 *“Immediate landing recommended within safe window”*
+## 🧬 Technical Stack
+*   **Core Logic:** Python (AsyncIO)
+*   **Mathematics:** NumPy, SciPy (Nonlinear Physics & EKF)
+*   **ML/AI:** LSTM + MC-Dropout for uncertainty-aware forecasting.
+*   **Frontend:** Vanilla JS / HTML5 (High-performance Canvas Rendering)
+*   **Communication:** WebSockets (JSON-L streaming)
 
 ---
 
-## 📊 System Differentiation
-
-| Dimension        | Conventional GCS | Cognitive GCS         |
-| ---------------- | ---------------- | --------------------- |
-| Data Handling    | Passive display  | Active interpretation |
-| Intelligence     | None             | Multi-layer AI        |
-| Decision Support | Manual           | AI-assisted           |
-| Simulation       | Absent           | Digital twin          |
-| Safety           | Reactive         | Predictive            |
-
----
-
-## 🧠 Impact & Applications
-
-* 🛰️ Autonomous UAV operations
-* 🚁 Defense & surveillance systems
-* 📦 Drone delivery optimization
-* 🌍 Disaster response & search missions
-
-This system reduces:
-
-* Failure response latency
-* Human cognitive load
-* Mission risk
-
----
-
-## 📦 Repository Structure
-
-```
-backend/
-    api/
-    engines/
-        ekf.py
-        digital_twin.py
-        prediction.py
-        anomaly.py
-        risk.py
-        decision.py
-
-frontend/
-    3d/
-    dashboard/
-
-models/
-docs/
-```
----
-
-## 📊 Evaluation & Performance Metrics
-
-> The system was evaluated using a combination of simulated telemetry streams and controlled fault injection scenarios to validate predictive accuracy, detection latency, and system responsiveness.
-
----
-
-### 🧪 Experimental Setup
-
-* **Telemetry Source:** Simulated UAV data streams (battery, RPM, IMU, GPS)
-* **Sampling Rate:** 10–50 Hz (real-time streaming conditions)
-* **Test Duration:** ~2.5 hours cumulative simulation
-* **Fault Injection:** Synthetic anomalies introduced:
-
-  * Battery voltage drop
-  * Motor RPM instability
-  * Sensor noise spikes
-
----
-
-### 📉 Predictive Model Performance
-
-| Metric                              | Value            |
-| ----------------------------------- | ---------------- |
-| Battery depletion prediction MAE    | **3.8%**         |
-| Failure horizon prediction accuracy | **84.6%**        |
-| Time-to-failure estimation error    | **±4.2 seconds** |
-
----
-
-### 🚨 Anomaly Detection Performance
-
-| Metric              | Value        |
-| ------------------- | ------------ |
-| Detection accuracy  | **91.3%**    |
-| False positive rate | **6.7%**     |
-| Detection latency   | **< 180 ms** |
-
----
-
-### 🧠 State Estimation (EKF)
-
-| Metric                           | Value                       |
-| -------------------------------- | --------------------------- |
-| Position estimation error (RMSE) | **1.2–1.8 m**               |
-| Velocity estimation error        | **0.3 m/s**                 |
-| Sensor noise reduction           | **~42% variance reduction** |
-
----
-
-### ⚠️ Risk Engine Evaluation
-
-| Metric                             | Value                           |
-| ---------------------------------- | ------------------------------- |
-| Risk score stability (variance)    | **Low (<0.05 σ)**               |
-| Critical event detection lead time | **5–12 seconds before failure** |
-| Risk classification accuracy       | **88.9%**                       |
-
----
-
-### 🤖 Decision Engine Effectiveness
-
-| Metric                                  | Value        |
-| --------------------------------------- | ------------ |
-| Correct recommendation rate             | **86.5%**    |
-| Average decision latency                | **< 120 ms** |
-| Action relevance score (heuristic eval) | **High**     |
-
----
-
-### 🖥️ System Performance
-
-| Metric                        | Value              |
-| ----------------------------- | ------------------ |
-| End-to-end latency (UAV → UI) | **< 250 ms**       |
-| WebSocket throughput          | **Stable @ 50 Hz** |
-| UI frame rate                 | **55–60 FPS**      |
-| System uptime during tests    | **99.2%**          |
-
----
-
-### 🔍 Key Observations
-
-* Predictive models consistently provided **early warning signals** before critical failures
-* EKF significantly improved **state stability under noisy conditions**
-* Combined anomaly + prediction pipeline reduced **missed failure events**
-* Decision engine outputs were **timely and contextually relevant**
-
----
-
-### ⚠️ Evaluation Disclaimer
-
-These results are derived from **simulated and semi-controlled environments**.
-Real-world performance may vary depending on hardware, environmental conditions, and sensor fidelity.
-
----
-
-Our system predicts critical failures up to 10 seconds before they occur, with sub-200 ms detection latency.
-
----
-
-## ⚠️ Operational Disclaimer
-
-This platform provides **decision augmentation**, not full autonomy.
-All mission-critical actions must be validated under real-world constraints.
-
----
-
-## 🏁 Closing Statement
-
-This project represents a transition from:
-
-> **Telemetry Monitoring → Cognitive Autonomy Systems**
-
-A foundational step toward **self-aware aerial intelligence platforms**.
-
----
-
-## 👨‍💻 Team
-
-**Altaria Hackathon Team — IoT Warriors**
-
----
+<p align="center">
+  Developed with ❤️ by <a href="https://github.com/subhamsje">subhamsje</a>
+</p>
