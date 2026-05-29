@@ -5,32 +5,48 @@
 # <p align="center">🛰️ DRONE-N1: THE COGNITIVE REVOLUTION</p>
 
 <p align="center">
+  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&color=36BCF7&center=true&vCenter=true&width=435&lines=AWAKENING+ALTARIA+OS...;LATENT+WORLD+MODELS+ONLINE;20D+PHYSICS+SYNCHRONIZED;SWARM+INTELLIGENCE+ACTIVATED" alt="Typing SVG" />
+</p>
+
+<p align="center">
   <b>The World's First Hybrid Digital Twin powered by the Altaria OS Kernel.</b>
 </p>
 
 <p align="center">
-  <a href="https://github.com/subhamsje/Drone-N1/stargazers"><img src="https://img.shields.io/github/stars/subhamsje/Drone-N1?style=for-the-badge&color=blue" alt="Stars"></a>
-  <a href="https://github.com/subhamsje/Drone-N1/network/members"><img src="https://img.shields.io/github/forks/subhamsje/Drone-N1?style=for-the-badge&color=green" alt="Forks"></a>
-  <a href="https://github.com/subhamsje/Drone-N1/issues"><img src="https://img.shields.io/github/issues/subhamsje/Drone-N1?style=for-the-badge&color=red" alt="Issues"></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License"></a>
+  <a href="https://github.com/subhamsje/Drone-N1/stargazers"><img src="https://img.shields.io/github/stars/subhamsje/Drone-N1?style=for-the-badge&color=blue&logo=github" alt="Stars"></a>
+  <a href="https://github.com/subhamsje/Drone-N1/network/members"><img src="https://img.shields.io/github/forks/subhamsje/Drone-N1?style=for-the-badge&color=green&logo=git" alt="Forks"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge&logo=opensourceinitiative" alt="License"></a>
+</p>
+
+---
+
+## 🌌 Neural Core Pulse
+
+<p align="center">
+  <svg width="600" height="100" viewBox="0 0 600 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 50H150L170 30L210 70L230 50H350L370 20L410 80L430 50H600" stroke="#36BCF7" stroke-width="2" stroke-dasharray="1000" stroke-dashoffset="1000">
+      <animate attributeName="stroke-dashoffset" from="1000" to="0" dur="3s" repeatCount="indefinite" />
+    </path>
+    <circle cx="0" cy="50" r="3" fill="#36BCF7">
+      <animateMotion path="M0 50H150L170 30L210 70L230 50H350L370 20L410 80L430 50H600" dur="3s" repeatCount="indefinite" />
+    </circle>
+  </svg>
 </p>
 
 ---
 
 ## 🌌 Overview
 
-**Drone-N1** isn't just a flight controller; it's an autonomous cognitive organism. Built on the **Altaria OS**, it merges high-fidelity nonlinear physics with deep generative world models to achieve a level of situational awareness previously reserved for advanced aerospace laboratories.
+**Drone-N1** is an autonomous cognitive organism. Built on the **Altaria OS**, it merges high-fidelity nonlinear physics with deep generative world models.
 
 ### 💎 The "Wow" Factor
-*   **20D Nonlinear Physics Engine:** Real-time integration of aerodynamics, structural dynamics, and propulsion.
-*   **Latent Generative Forecasting:** Predicting the future 10 seconds ahead using uncertainty-aware LSTM manifolds.
-*   **Altaria OS Kernel:** A mixed-criticality runtime that ensures safety even when cognitive systems are pushed to the limit.
+*   **🧠 Meta-Cognition:** Real-time self-monitoring and strategic evolution.
+*   **🌀 20D Physics:** aerodynamic, structural, and propulsion integration.
+*   **🔮 Latent Forecasting:** Predicting the future 10 seconds ahead.
 
 ---
 
-## 🛠️ System Architecture
-
-The **Intelligence Pipeline** is a closed-loop mastery of data and action:
+## 🛠️ Intelligence Pipeline
 
 ```mermaid
 graph TD
@@ -41,85 +57,40 @@ graph TD
     D & E --> F[4-Quadrant Risk Engine]
     F --> G[Adaptive MPC Controller]
     G --> H[Cognitive Execution]
-    H -->|XAI Feedback| I[Visual Interface]
 ```
-
----
-
-## 🕹️ Interactive Interface
-
-The project includes a **Cyber-Cognitive Dashboard** that streams live telemetry via high-speed WebSockets. It provides:
-*   **Neural Heatmaps:** Visualizing decision-making confidence.
-*   **Risk Quadrants:** Real-time survival probability monitoring.
-*   **Swarm Telemetry:** Unified control for distributed drone fleets.
 
 ---
 
 ## 🚀 How to Run
 
-Follow these steps to awaken the Drone-N1 system on your local machine.
-
 ### 1. 📋 Prerequisites
-*   **Python:** 3.10 or higher
-*   **Node.js:** v18+ (for the frontend)
-*   **Git:** To clone and manage the core.
+*   Python 3.10+ | Node.js v18+
 
-### 2. 🧬 Clone the Neural Core
+### 2. 🧠 Launch the Backend
 ```bash
-git clone https://github.com/subhamsje/Drone-N1.git
-cd Drone-N1
-```
-
-### 3. 🧠 Initialize the Backend (Brain)
-The backend handles the physics, EKF, and AI forecasting.
-```bash
-# Create and activate a virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-
-# Launch the Cognitive Engine
-python main.py
+python main.py --demo
 ```
-*   *Add `--demo` to trigger a simulated sensor failure and see the system's recovery in action.*
 
-### 🎨 Initialize the Frontend (Vision)
-The frontend provides the high-performance visualization dashboard.
+### 🎨 Launch the Frontend
 ```bash
-cd frontend
-npm install
-npm run dev
+cd frontend && npm install && npm run dev
 ```
-*   *Open `http://localhost:3000` to view the live telemetry stream.*
 
 ---
 
 ## 🧬 Technical Stack
 
-| Component | Technology |
+| Tech | Purpose |
 | :--- | :--- |
-| **Cognitive OS** | Altaria OS (Mixed-Criticality Kernel) |
-| **Mathematics** | NumPy, SciPy (Nonlinear Physics & EKF) |
-| **Deep Learning** | PyTorch / TensorFlow (Latent World Models) |
-| **Data Stream** | High-speed WebSockets (JSON-L) |
-| **Visualization** | React + Three.js + Canvas Rendering |
-
----
-
-## 🤝 Contributing
-
-We are building the future of autonomy. If you have ideas for the Altaria OS or the Digital Twin engine:
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
+| **Altaria OS** | Mixed-Criticality Kernel |
+| **NumPy/SciPy** | Nonlinear Physics |
+| **PyTorch** | Latent World Models |
+| **Three.js** | 3D Visualization |
 
 ---
 
 <p align="center">
-  Built with passion for the next frontier of robotics. <br>
   <b>Designed & Developed by <a href="https://github.com/subhamsje">subhamsje</a></b>
 </p>
