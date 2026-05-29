@@ -1,97 +1,125 @@
-# 🛰️ Drone-N1: Altaria Cognitive OS & Hybrid Digital Twin
+<p align="center">
+  <img src="https://raw.githubusercontent.com/subhamsje/Drone-N1/main/docs/assets/logo.png" width="150" alt="Drone-N1 Logo">
+</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Engine: Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Architecture: Hybrid Digital Twin](https://img.shields.io/badge/Architecture-Hybrid%20Digital%20Twin-red.svg)]()
-[![OS: Altaria Cognitive](https://img.shields.io/badge/OS-Altaria%20Cognitive-purple.svg)]()
+# <p align="center">🛰️ DRONE-N1: THE COGNITIVE REVOLUTION</p>
 
-> **The next generation of UAV autonomy.** A high-fidelity cognitive control system featuring a 20D nonlinear physics engine, real-time latent world models, and the Altaria OS kernel for safety-critical swarm operations.
+<p align="center">
+  <b>The World's First Hybrid Digital Twin powered by the Altaria OS Kernel.</b>
+</p>
+
+<p align="center">
+  <a href="https://github.com/subhamsje/Drone-N1/stargazers"><img src="https://img.shields.io/github/stars/subhamsje/Drone-N1?style=for-the-badge&color=blue" alt="Stars"></a>
+  <a href="https://github.com/subhamsje/Drone-N1/network/members"><img src="https://img.shields.io/github/forks/subhamsje/Drone-N1?style=for-the-badge&color=green" alt="Forks"></a>
+  <a href="https://github.com/subhamsje/Drone-N1/issues"><img src="https://img.shields.io/github/issues/subhamsje/Drone-N1?style=for-the-badge&color=red" alt="Issues"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License"></a>
+</p>
 
 ---
 
-## 🛠️ System Architecture: The "Sequential Intelligence" Pipeline
+## 🌌 Overview
 
-Drone-N1 operates on a fixed 200ms timestep loop, executing a sophisticated sequential pipeline that bridges the gap between raw physics and high-level cognitive reasoning.
+**Drone-N1** isn't just a flight controller; it's an autonomous cognitive organism. Built on the **Altaria OS**, it merges high-fidelity nonlinear physics with deep generative world models to achieve a level of situational awareness previously reserved for advanced aerospace laboratories.
+
+### 💎 The "Wow" Factor
+*   **20D Nonlinear Physics Engine:** Real-time integration of aerodynamics, structural dynamics, and propulsion.
+*   **Latent Generative Forecasting:** Predicting the future 10 seconds ahead using uncertainty-aware LSTM manifolds.
+*   **Altaria OS Kernel:** A mixed-criticality runtime that ensures safety even when cognitive systems are pushed to the limit.
+
+---
+
+## 🛠️ System Architecture
+
+The **Intelligence Pipeline** is a closed-loop mastery of data and action:
 
 ```mermaid
-graph LR
-    P[Physics 20D] --> E[EKF Rollback]
-    E --> DT[Digital Twin]
-    DT --> Pred[LSTM+MC Prediction]
-    Pred --> Anom[Fused Anomaly]
-    Anom --> Risk[4-Quadrant Risk]
-    Risk --> MPC[Adaptive MPC]
-    MPC --> XAI[Hybrid XAI]
-    XAI --> WS[WebSocket Stream]
+graph TD
+    A[Raw Sensors] -->|EKF Rollback| B(State Estimation)
+    B --> C{Altaria OS}
+    C -->|Physics Logic| D[Digital Twin]
+    C -->|Generative AI| E[Latent World Model]
+    D & E --> F[4-Quadrant Risk Engine]
+    F --> G[Adaptive MPC Controller]
+    G --> H[Cognitive Execution]
+    H -->|XAI Feedback| I[Visual Interface]
 ```
 
 ---
 
-## ✨ Core Pillars of Intelligence
+## 🕹️ Interactive Interface
 
-### 🧠 Altaria Cognitive OS
-A specialized kernel designed for high-stakes autonomy. Includes:
-*   **Meta-Cognition:** Real-time self-monitoring and strategic evolution.
-*   **Formal Verification:** Evidence-based DAGs for operational compliance.
-*   **Mixed Criticality Runtime:** Guaranteed execution of safety-critical tasks.
-
-### 🌐 Foundation World Models
-Leverages latent generative simulation to forecast consequences before taking action.
-*   **Generative Survivability:** Predicting comm-collapse and adversarial escalation.
-*   **Latent State Decoding:** Compressing complex airspace data into actionable latent manifolds.
-
-### 🛡️ Cyber-Resilient Swarm Operations
-Advanced fleet cognition for distributed intelligence.
-*   **Collective Intelligence:** Swarm-level learning and decision-making.
-*   **Cybersecurity Engine:** Integrated threat detection and active response protocols.
+The project includes a **Cyber-Cognitive Dashboard** that streams live telemetry via high-speed WebSockets. It provides:
+*   **Neural Heatmaps:** Visualizing decision-making confidence.
+*   **Risk Quadrants:** Real-time survival probability monitoring.
+*   **Swarm Telemetry:** Unified control for distributed drone fleets.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 How to Run
 
-### Prerequisites
-*   Python 3.10+
-*   Node.js (for the Cognitive Interface frontend)
+Follow these steps to awaken the Drone-N1 system on your local machine.
 
-### Installation
+### 1. 📋 Prerequisites
+*   **Python:** 3.10 or higher
+*   **Node.js:** v18+ (for the frontend)
+*   **Git:** To clone and manage the core.
+
+### 2. 🧬 Clone the Neural Core
 ```bash
 git clone https://github.com/subhamsje/Drone-N1.git
 cd Drone-N1
-pip install -r requirements.txt
 ```
 
-### Running the Digital Twin
+### 3. 🧠 Initialize the Backend (Brain)
+The backend handles the physics, EKF, and AI forecasting.
 ```bash
-# Standard 80s real-time simulation
+# Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Launch the Cognitive Engine
 python main.py
-
-# Run fast demo with induced fault at 3s
-python main.py --demo
-
-# Headless mode (disable WebSocket server)
-python main.py --no-ws
 ```
+*   *Add `--demo` to trigger a simulated sensor failure and see the system's recovery in action.*
 
----
-
-## 📊 Cognitive Control Interface
-The system streams high-frequency telemetry via WebSockets to a dedicated HTML5 interface (`uav_cognitive_control_interface.html`), providing:
-*   Real-time 20D state visualization.
-*   Explainability (XAI) heatmaps for MPC decisions.
-*   Risk quadrant monitoring.
-*   Swarm health telemetry.
+### 🎨 Initialize the Frontend (Vision)
+The frontend provides the high-performance visualization dashboard.
+```bash
+cd frontend
+npm install
+npm run dev
+```
+*   *Open `http://localhost:3000` to view the live telemetry stream.*
 
 ---
 
 ## 🧬 Technical Stack
-*   **Core Logic:** Python (AsyncIO)
-*   **Mathematics:** NumPy, SciPy (Nonlinear Physics & EKF)
-*   **ML/AI:** LSTM + MC-Dropout for uncertainty-aware forecasting.
-*   **Frontend:** Vanilla JS / HTML5 (High-performance Canvas Rendering)
-*   **Communication:** WebSockets (JSON-L streaming)
+
+| Component | Technology |
+| :--- | :--- |
+| **Cognitive OS** | Altaria OS (Mixed-Criticality Kernel) |
+| **Mathematics** | NumPy, SciPy (Nonlinear Physics & EKF) |
+| **Deep Learning** | PyTorch / TensorFlow (Latent World Models) |
+| **Data Stream** | High-speed WebSockets (JSON-L) |
+| **Visualization** | React + Three.js + Canvas Rendering |
+
+---
+
+## 🤝 Contributing
+
+We are building the future of autonomy. If you have ideas for the Altaria OS or the Digital Twin engine:
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
 
 ---
 
 <p align="center">
-  Developed with ❤️ by <a href="https://github.com/subhamsje">subhamsje</a>
+  Built with passion for the next frontier of robotics. <br>
+  <b>Designed & Developed by <a href="https://github.com/subhamsje">subhamsje</a></b>
 </p>
