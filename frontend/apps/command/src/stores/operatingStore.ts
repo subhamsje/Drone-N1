@@ -14,11 +14,15 @@ interface OperatingStoreState {
   stream: StreamEngineStats;
   activeMissionId: string | null;
   commandTab: string;
+  activeTenant: string;
+  analyticsOverlayOpen: boolean;
   applyOperating: (op: OperatingState, stats: StreamEngineStats) => void;
   applyEnvelopeFlush: (env: CognitionEnvelope, stats: StreamEngineStats, op?: OperatingState | null) => void;
   setPlatform: (p: Partial<PlatformPollStatus>) => void;
   setActiveMissionId: (id: string | null) => void;
   setCommandTab: (tab: string) => void;
+  setActiveTenant: (tenant: string) => void;
+  setAnalyticsOverlayOpen: (open: boolean) => void;
 }
 
 const defaultStream: StreamEngineStats = {
@@ -37,6 +41,8 @@ export const useOperatingStore = create<OperatingStoreState>((set, get) => ({
   stream: defaultStream,
   activeMissionId: null,
   commandTab: 'mission',
+  activeTenant: 'default-fleet',
+  analyticsOverlayOpen: false,
 
   applyOperating: (op, stats) => {
     const mid = op.mission?.active_mission?.mission_id ?? get().activeMissionId;
@@ -58,7 +64,17 @@ export const useOperatingStore = create<OperatingStoreState>((set, get) => ({
     });
   },
 
-  setPlatform: (p) => set({ platform: { ...get().platform, ...p } }),
+  setPlatform: (p) => {
+    const prev = get().platform;
+    const next = { ...prev };
+    if (p.execution) next.execution = { ...(prev.execution || {}), ...p.execution };
+    if (p.intelligence) next.intelligence = { ...(prev.intelligence || {}), ...p.intelligence };
+    if (p.edge) next.edge = { ...(prev.edge || {}), ...p.edge };
+    if (p.mlops) next.mlops = { ...(prev.mlops || {}), ...p.mlops };
+    set({ platform: next });
+  },
   setActiveMissionId: (activeMissionId) => set({ activeMissionId }),
   setCommandTab: (commandTab) => set({ commandTab }),
+  setActiveTenant: (activeTenant) => set({ activeTenant }),
+  setAnalyticsOverlayOpen: (analyticsOverlayOpen) => set({ analyticsOverlayOpen }),
 }));

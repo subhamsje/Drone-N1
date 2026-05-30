@@ -156,6 +156,55 @@ class MAVSDKExecutor:
     async def emergency_land_at(self, lat: float, lon: float, alt_m: float = 0) -> ExecutionResult:
         return await self.execute("EMERGENCY_LAND", {"lat": lat, "lon": lon, "altitude_m": alt_m})
 
+    async def upload_mission(self, waypoints: List[Dict[str, float]]) -> ExecutionResult:
+        t0 = time.monotonic()
+        try:
+            if not self._connected or not self._drone:
+                raise ConnectionError("Drone not connected to MAVSDK.")
+                
+            from mavsdk.mission import MissionItem, MissionPlan
+            items = []
+            for wp in waypoints:
+                items.append(MissionItem(
+                    wp.get("lat", 0.0),
+                    wp.get("lon", 0.0),
+                    float(wp.get("alt_m", wp.get("altM", 10.0))),
+                    10.0,
+                    True,
+                    float('nan'),
+                    float('nan'),
+                    MissionItem.CameraAction.NONE,
+                    float('nan'),
+                    float('nan'),
+                    float('nan'),
+                    float('nan'),
+                    float('nan')
+                ))
+            plan = MissionPlan(items)
+            await self._drone.mission.upload_mission(plan)
+            
+            msg = f"UPLOAD_MISSION: {len(items)} waypoints"
+            self._command_log.append({"ts": time.time(), "command": "UPLOAD_MISSION", "success": True})
+            return ExecutionResult(True, "UPLOAD_MISSION", msg, (time.monotonic() - t0) * 1000)
+        except Exception as e:
+            logger.error(f"Mission upload failed: {e}")
+            self._command_log.append({"ts": time.time(), "command": "UPLOAD_MISSION", "success": False})
+            return ExecutionResult(False, "UPLOAD_MISSION", str(e), (time.monotonic() - t0) * 1000)
+
+    async def start_mission(self) -> ExecutionResult:
+        t0 = time.monotonic()
+        try:
+            if not self._connected or not self._drone:
+                raise ConnectionError("Drone not connected to MAVSDK.")
+            
+            await self._drone.mission.start_mission()
+            self._command_log.append({"ts": time.time(), "command": "START_MISSION", "success": True})
+            return ExecutionResult(True, "START_MISSION", "Mission started natively via MAVSDK", (time.monotonic() - t0) * 1000)
+        except Exception as e:
+            logger.error(f"Mission start failed: {e}")
+            self._command_log.append({"ts": time.time(), "command": "START_MISSION", "success": False})
+            return ExecutionResult(False, "START_MISSION", str(e), (time.monotonic() - t0) * 1000)
+
     async def get_telemetry(self) -> Dict[str, Any]:
         if not self._drone or not self._connected:
             raise ConnectionError("Drone not connected. Cannot fetch telemetry.")

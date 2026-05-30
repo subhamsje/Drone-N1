@@ -55,3 +55,20 @@ export async function flightStackStatus() {
   if (!res.ok) throw new Error(`status ${res.status}`);
   return res.json();
 }
+
+export async function getEnterpriseAnalytics(tenantId?: string) {
+  const url = new URL(`${API}/api/v1/intelligence/analytics/enterprise`);
+  if (tenantId) url.searchParams.set('tenant_id', tenantId);
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error(`analytics ${res.status}`);
+  return res.json();
+}
+
+export async function getTelemetryLakeHistory(tenantId?: string, range = '7d') {
+  const url = new URL(`${API}/api/v1/intelligence/analytics/lake`);
+  if (tenantId) url.searchParams.set('tenant_id', tenantId);
+  url.searchParams.set('range', range);
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error(`lake ${res.status}`);
+  return res.json();
+}

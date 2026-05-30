@@ -50,9 +50,10 @@ export function syncEnvironmentalOverlays(entities: EnvironmentEntities, state: 
     const polyline = ent.polyline as any;
     if (polyline) {
       polyline.positions = [
-        Cartesian3.fromDegrees(g.lon + offsetLon, g.lat + offsetLat, alt + 50),
-        Cartesian3.fromDegrees(g.lon + offsetLon + flow, g.lat + offsetLat + 0.001, alt + 50)
+        Cartesian3.fromDegrees(g.lon + offsetLon, g.lat + offsetLat, alt + 10),
+        Cartesian3.fromDegrees(g.lon + offsetLon + flow, g.lat + offsetLat + 0.001, alt + 10)
       ];
+      polyline.show = true;
     }
   });
 
@@ -69,8 +70,9 @@ export function syncEnvironmentalOverlays(entities: EnvironmentEntities, state: 
         g.lon - radius/2, g.lat - radius,
       ])
     };
-    p.height = alt + 45;
+    p.height = alt + 5;
     p.material = Color.fromCssColorString('#3b82f6').withAlpha(t.turbulence * 0.15);
     p.outlineColor = Color.fromCssColorString('#60a5fa').withAlpha(t.turbulence * 0.3);
+    entities.turbulenceMap.show = t.turbulence > 0.1;
   }
 }

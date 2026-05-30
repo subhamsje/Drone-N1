@@ -68,7 +68,20 @@ async def export_mission_plan(mission_id: str, request: Request):
     if not m:
         raise HTTPException(404, "Mission not found")
         
-    # Generate QGC JSON plan structure
+    items = []
+    # Real mapping of waypoints to QGC items
+    if m.plan and isinstance(m.plan, dict) and "waypoints" in m.plan:
+        for idx, wp in enumerate(m.plan["waypoints"]):
+            items.append({
+                "AMVP": [0, 0, 0],
+                "autoContinue": True,
+                "command": 16, # MAV_CMD_NAV_WAYPOINT
+                "doJumpId": idx + 1,
+                "frame": 3, # MAV_FRAME_GLOBAL_RELATIVE_ALT
+                "params": [0, 0, 0, 0, wp.get("lat", 0.0), wp.get("lon", 0.0), float(wp.get("alt_m", wp.get("altM", 10.0)))],
+                "type": "SimpleItem"
+            })
+
     plan = {
         "fileType": "Plan",
         "geoFence": {
@@ -81,7 +94,7 @@ async def export_mission_plan(mission_id: str, request: Request):
             "cruiseSpeed": 15,
             "firmwareType": 12, # PX4
             "hoverSpeed": 5,
-            "items": [],
+            "items": items,
             "plannedHomePosition": [0, 0, 0],
             "vehicleType": 2, # Quadrotor
             "version": 2
@@ -92,8 +105,5 @@ async def export_mission_plan(mission_id: str, request: Request):
         },
         "version": 1
     }
-    
-    # Stub translating semantic generated constraints/waypoints into MAVLink items
-    # e.g., plan["mission"]["items"].append({ ... MAV_CMD_NAV_WAYPOINT ... })
     
     return plan

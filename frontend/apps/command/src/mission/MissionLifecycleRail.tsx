@@ -5,13 +5,12 @@ import { planMission, advanceMission } from '../api/intelligenceApi';
 import { useOperatingStore } from '../stores/operatingStore';
 
 const PHASES = [
-  'plan',
-  'simulate',
-  'validate',
-  'approve',
-  'upload',
-  'execute',
-  'monitor',
+  { id: 'plan', label: 'PLANNED' },
+  { id: 'validate', label: 'VALIDATED' },
+  { id: 'approve', label: 'APPROVED' },
+  { id: 'upload', label: 'UPLOADED' },
+  { id: 'execute', label: 'EXECUTING' },
+  { id: 'learn', label: 'COMPLETE' },
 ] as const;
 
 export function MissionLifecycleRail({ embedded = false }: { embedded?: boolean }) {
@@ -57,11 +56,12 @@ export function MissionLifecycleRail({ embedded = false }: { embedded?: boolean 
       if (res.mission) {
         setPhase(res.mission.phase);
         const v = res.mission.validation;
-        if (v && !v.passed) setLog('Validation failed — adjust route or intent');
-        else if (target === 'approve') setLog('Mission approved · ready for upload');
-        else if (target === 'upload') setLog('Route uploaded to flight stack (MAVSDK)');
-        else if (target === 'execute') setLog('Mission executing — monitor cognition stream');
-        else setLog(`Phase: ${res.mission.phase}`);
+        if (v && !v.passed) setLog('VALIDATION FAILED — Safety gate engaged');
+        else if (target === 'approve') setLog('MISSION APPROVED — Command authority granted');
+        else if (target === 'upload') setLog('ROUTE UPLOADED — MAVLink handoff complete');
+        else if (target === 'execute') setLog('EXECUTING — Autonomy loop active');
+        else if (target === 'learn') setLog('MISSION COMPLETE — Evidence archived to ClickHouse');
+        else setLog(`STATE: ${res.mission.phase.toUpperCase()}`);
       }
     } catch (e) {
       setLog(`Advance failed — ${e instanceof Error ? e.message : 'error'}`);
@@ -78,38 +78,38 @@ export function MissionLifecycleRail({ embedded = false }: { embedded?: boolean 
     >
       {!embedded && (
       <div className="flex items-center justify-between text-slate-500">
-        <span className="uppercase tracking-widest text-cyan-700">Mission intelligence</span>
-        <span>
-          {missionId ? `${missionId} · ${phase}` : 'No active mission'}
+        <span className="uppercase tracking-widest text-cyan-700">Mission lifecycle</span>
+        <span className="text-cyan-600 font-bold">
+          {missionId ? `${missionId.toUpperCase()} :: ${phase.toUpperCase()}` : 'IDLE'}
         </span>
       </div>
       )}
       <div className="flex flex-wrap items-center gap-1">
         {PHASES.map((p) => (
           <button
-            key={p}
+            key={p.id}
             type="button"
             disabled={busy}
-            onClick={() => runAdvance(p)}
-            className={`rounded px-2 py-1 uppercase tracking-wider ${
-              phase === p
-                ? 'bg-cyan-950 text-cyan-300 ring-1 ring-cyan-800'
-                : 'bg-slate-900/80 text-slate-400 hover:text-cyan-400'
+            onClick={() => runAdvance(p.id)}
+            className={`rounded px-1.5 py-1 text-[8px] font-bold tracking-tighter transition-all ${
+              phase === p.id
+                ? 'bg-cyan-500 text-[#010409] ring-1 ring-cyan-400'
+                : 'bg-slate-900/60 text-slate-500 hover:text-cyan-400 hover:bg-slate-800'
             }`}
           >
-            {p}
+            {p.label}
           </button>
         ))}
         <button
           type="button"
           disabled={busy}
           onClick={() => runAdvance()}
-          className="ml-auto rounded bg-teal-950/60 px-3 py-1 text-teal-300 ring-1 ring-teal-900"
+          className="ml-auto rounded bg-emerald-950/60 px-3 py-1 text-emerald-300 ring-1 ring-emerald-900 text-[8px] font-bold"
         >
-          Next →
+          STEP →
         </button>
       </div>
-      {log && <p className="text-slate-400">{log}</p>}
+      {log && <p className="text-slate-400 text-[9px] mt-1 italic">{log}</p>}
     </div>
   );
 }

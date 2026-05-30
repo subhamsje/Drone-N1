@@ -47,11 +47,6 @@ class ROS2TelemetryAdapter:
 
     async def _on_battery(self, msg: Any):
         self._state_cache["battery"] = msg.remaining
-        
-    async def ingest_mock_telemetry(self, data: Dict[str, Any]):
-        """Fallback method when testing without ROS2."""
-        self._state_cache.update(data)
-        await self._publish_normalized()
 
     async def _publish_normalized(self):
         event = DomainEvent.create(

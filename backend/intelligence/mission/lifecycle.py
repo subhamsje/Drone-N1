@@ -234,6 +234,11 @@ class MissionLifecycleOrchestrator:
     async def _phase_execute(self, record: MissionLifecycleRecord) -> Dict[str, Any]:
         if not record.upload_result or not record.upload_result.get("success"):
             return {"success": False, "reason": "upload_required"}
+        
+        result = await self.flight_stack.start_mission()
+        if not result.get("success"):
+            return {"success": False, "reason": "mavsdk_start_failed", "detail": result.get("message")}
+            
         record.execution_result = {"status": "active", "monitor_via": "/ws/v1/stream"}
         return record.execution_result
 

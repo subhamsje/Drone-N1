@@ -1,0 +1,16 @@
+# Request
+string scenario
+float32 wind_gust
+float32 gps_noise
+int32 motor_failure_index
+float32 battery_degradation
+---
+# Result
+float32 crash_probability
+float32 recovery_probability
+float32 survivability_score
+float32 execution_time_ms
+---
+# Feedback
+string status
+float32 simulated_time_s

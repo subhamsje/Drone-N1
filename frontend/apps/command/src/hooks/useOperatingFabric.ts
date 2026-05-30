@@ -74,7 +74,7 @@ export function useOperatingFabric() {
       }
     };
     poll();
-    const t = setInterval(poll, 2500);
+    const t = setInterval(poll, 1000);
     return () => clearInterval(t);
   }, [setPlatform]);
 }

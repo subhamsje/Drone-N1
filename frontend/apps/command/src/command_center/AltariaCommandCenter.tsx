@@ -1,26 +1,18 @@
 import { useOperatingStore } from '../stores/operatingStore';
 import {
   MissionCommandPanel,
-  SurvivabilityCenterPanel,
-  WorldModelPanel,
-  SwarmFleetPanel,
-  TrustCertificationPanel,
   GeospatialIntelPanel,
-  EdgeOpsPanel,
-  MlopsPanel,
   MissionReplayPanel,
+  AnalyticsPanel,
+  EvidenceCenterPanel,
 } from './panels';
 
 const TABS = [
   { id: 'mission', label: 'Mission' },
-  { id: 'survive', label: 'Survive' },
-  { id: 'world', label: 'World' },
-  { id: 'swarm', label: 'Swarm' },
-  { id: 'trust', label: 'Trust' },
   { id: 'geo', label: 'Earth' },
-  { id: 'edge', label: 'Edge' },
-  { id: 'mlops', label: 'MLOps' },
   { id: 'replay', label: 'Replay' },
+  { id: 'analytics', label: 'Analytics' },
+  { id: 'evidence', label: 'Evidence' },
 ] as const;
 
 export function AltariaCommandCenter({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
@@ -71,14 +63,10 @@ export function AltariaCommandCenter({ collapsed, onToggle }: { collapsed: boole
       </nav>
       <div className="flex-1 overflow-y-auto p-2">
         {tab === 'mission' && <MissionCommandPanel />}
-        {tab === 'survive' && <SurvivabilityCenterPanel />}
-        {tab === 'world' && <WorldModelPanel />}
-        {tab === 'swarm' && <SwarmFleetPanel />}
-        {tab === 'trust' && <TrustCertificationPanel />}
         {tab === 'geo' && <GeospatialIntelPanel />}
-        {tab === 'edge' && <EdgeOpsPanel />}
-        {tab === 'mlops' && <MlopsPanel />}
         {tab === 'replay' && <MissionReplayPanel />}
+        {tab === 'analytics' && <AnalyticsPanel />}
+        {tab === 'evidence' && <EvidenceCenterPanel />}
       </div>
     </aside>
   );

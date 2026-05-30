@@ -91,3 +91,14 @@ async def executive_metrics(request: Request):
     lake = ClickHouseLake(BACKEND_CONFIG.telemetry_lake_url if hasattr(BACKEND_CONFIG, 'telemetry_lake_url') else "clickhouse://default:@localhost:9000/altaria")
     metrics = await lake.get_executive_metrics()
     return metrics
+
+
+@router.get("/logs")
+async def get_system_logs(request: Request, limit: int = 50):
+    """
+    Retrieves live system event history for the Evidence Center.
+    """
+    from backend.events.bus import get_event_bus
+    bus = get_event_bus()
+    history = bus.get_history(limit=limit)
+    return [e.to_dict() for e in history]

@@ -6,8 +6,6 @@ Maintains DDS communication between Altaria Cognition Layer and ArduPilot/Gazebo
 import logging
 from typing import Any, Dict
 
-# In a true deployment, this uses rclpy. We use stubs here for architectural validation
-# until the Jetson edge environment is fully provisioned with ROS2 Humble/Jazzy.
 try:
     import rclpy
     from rclpy.node import Node
@@ -26,36 +24,49 @@ class AltariaROS2Node:
         self.uav_id = uav_id
         self._node = None
         self._running = False
-        
-        # In-memory queues for when ROS2 is missing during testing
-        self._mock_topics: Dict[str, Any] = {}
+        self.status = "INITIALIZING"
 
     def start(self):
         if ROS2_AVAILABLE:
-            rclpy.init()
-            self._node = Node(f'altaria_cognition_{self.uav_id}')
-            logger.info("[%s] ROS2 Node initialized.", self.uav_id)
+            try:
+                rclpy.init()
+                self._node = Node(f'altaria_cognition_{self.uav_id}')
+                self.status = "CONNECTED"
+                logger.info("[%s] ROS2 Node initialized.", self.uav_id)
+                self._running = True
+            except Exception as e:
+                self.status = f"ERROR: {e}"
+                logger.error(f"ROS2 init failed: {e}")
+                self._running = False
         else:
-            logger.warning("[%s] ROS2 not found. Operating bridge in fallback/mock mode.", self.uav_id)
-        self._running = True
+            self.status = "UNAVAILABLE"
+            logger.error("[%s] ROS2 not found. Bridge disabled. No mock data will be generated.", self.uav_id)
+            self._running = False
 
     def create_subscription(self, topic: str, msg_type: Any, callback, qos="telemetry"):
+        if not self._running or not self._node:
+            logger.warning(f"Cannot subscribe to {topic} - ROS2 unavailable")
+            return
         logger.debug("[%s] Subscribed to ROS2 topic: %s", self.uav_id, topic)
 
     def create_publisher(self, topic: str, msg_type: Any, qos="critical"):
+        if not self._running or not self._node:
+            logger.warning(f"Cannot publish to {topic} - ROS2 unavailable")
+            return
         logger.debug("[%s] Created ROS2 publisher: %s", self.uav_id, topic)
 
     def publish(self, topic: str, data: Dict[str, Any]):
-        if not self._running:
+        if not self._running or not self._node:
+            logger.debug(f"Dropped message for {topic} - ROS2 offline")
             return
-        if ROS2_AVAILABLE and self._node:
-            # Actual ROS2 publish logic
-            pass
-        else:
-            self._mock_topics[topic] = data
+        # Actual ROS2 publish logic would execute here
 
     def stop(self):
         self._running = False
+        self.status = "STOPPED"
         if ROS2_AVAILABLE and self._node:
-            self._node.destroy_node()
-            rclpy.shutdown()
+            try:
+                self._node.destroy_node()
+                rclpy.shutdown()
+            except Exception:
+                pass

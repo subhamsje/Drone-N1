@@ -44,11 +44,11 @@ function branchToGlobePoints(
 ): Cartesian3[] {
   const alt = altM + 6378137;
   return branch.points.map(([x, y, z], i) => {
-    const scale = 0.00008;
+    const scale = 0.00015; // Increased scale for globe visibility
     return Cartesian3.fromDegrees(
       originLon + x * scale * (1 + i * 0.1),
       originLat + z * scale * (1 + i * 0.1),
-      alt + y * 8,
+      alt + y * 12,
     );
   });
 }
@@ -60,6 +60,7 @@ export function syncCognitionLayers(
   rerouteRequired: boolean,
 ): void {
   const g = state.globe;
+  const t = state.twin;
   const alt = g.altM + 6378137;
   const pos = Cartesian3.fromDegrees(g.lon, g.lat, alt);
 
@@ -68,23 +69,26 @@ export function syncCognitionLayers(
       id: 'cognition-aircraft',
       position: pos,
       point: {
-        pixelSize: 16,
+        pixelSize: 22,
         color: Color.fromCssColorString('#22d3a8'),
         outlineColor: Color.WHITE,
-        outlineWidth: 2,
+        outlineWidth: 3,
       },
       label: {
         text: g.uavId,
-        font: '12px monospace',
+        font: '10px JetBrains Mono, monospace',
         fillColor: Color.WHITE,
-        pixelOffset: new Cartesian3(0, -28, 0),
+        outlineColor: Color.BLACK,
+        outlineWidth: 2,
+        pixelOffset: new Cartesian3(0, -32, 0),
+        style: 2, // FILL_AND_OUTLINE
       },
       path: {
-        resolution: 2,
-        material: Color.fromCssColorString('#22d3a8').withAlpha(0.35),
-        width: 2,
-        leadTime: 8,
-        trailTime: 45,
+        resolution: 1,
+        material: Color.fromCssColorString('#22d3a8').withAlpha(0.2),
+        width: 1.5,
+        leadTime: 0,
+        trailTime: 120,
       },
     });
   } else {
@@ -92,11 +96,11 @@ export function syncCognitionLayers(
     if (refs.aircraft.point) {
       (refs.aircraft.point as unknown as { color: Color }).color =
         g.conflictRisk > 0.5 || rerouteRequired
-          ? Color.ORANGE
+          ? Color.fromCssColorString('#f43f5e') // Red alert
           : Color.fromCssColorString('#22d3a8');
     }
     if (refs.aircraft.label) {
-      (refs.aircraft.label as unknown as { text: string }).text = g.uavId;
+      (refs.aircraft.label as unknown as { text: string }).text = `${g.uavId}\nALT: ${g.altM.toFixed(1)}m\nHDG: ${t.headingDeg.toFixed(0)}°`;
     }
   }
 
@@ -166,7 +170,7 @@ export function syncMissionLayers(
     (ent as unknown as { position: Cartesian3 }).position = Cartesian3.fromDegrees(wp.lon, wp.lat, alt);
     const ew = ent as unknown as Record<string, unknown>;
     ew.point = {
-      pixelSize: 12,
+      pixelSize: 14,
       color: Color.fromCssColorString('#a78bfa'),
       outlineColor: Color.WHITE,
       outlineWidth: 2,
@@ -189,15 +193,16 @@ export function syncMissionLayers(
         corridor: {
           positions,
           width: adaptiveOffset ? 1200 : 800,
-          extrudedHeight: 200, // Extrude 200 meters into a volumetric lane
+          extrudedHeight: 200, 
           height: 50,
-          material: Color.fromCssColorString('#8b5cf6').withAlpha(adaptiveOffset ? 0.25 : 0.15),
+          material: Color.fromCssColorString('#8b5cf6').withAlpha(adaptiveOffset ? 0.35 : 0.2),
           outline: true,
           outlineColor: Color.fromCssColorString('#c4b5fd').withAlpha(0.6),
         },
       });
     } else if (refs.adaptiveRoute.corridor) {
       (refs.adaptiveRoute.corridor as unknown as { positions: Cartesian3[] }).positions = positions;
+      refs.adaptiveRoute.show = true;
     }
   } else if (refs.adaptiveRoute) {
     refs.adaptiveRoute.show = false;
@@ -217,12 +222,11 @@ export function syncMissionLayers(
     const color =
       gf.kind === 'no-fly' ? Color.RED : gf.kind === 'recovery' ? Color.fromCssColorString('#22d3a8') : Color.YELLOW;
     
-    // Extrude geofence to create a 3D volumetric airspace restriction
-    const heightM = 500; // 500 meter tall cylinder
+    const heightM = 500; 
     (ent as unknown as { position: Cartesian3 }).position = Cartesian3.fromDegrees(
       gf.lon,
       gf.lat,
-      heightM / 2 // Center of cylinder
+      heightM / 2 
     );
     (ent as unknown as Record<string, unknown>).cylinder = {
       length: heightM,
@@ -272,7 +276,6 @@ export function syncSwarmOnGlobe(
     es.label = { text: String(id).slice(0, 8), font: '9px monospace', fillColor: Color.CYAN, pixelOffset: new Cartesian3(0, -14, 0) };
   });
 
-  // Render decentralized communication mesh (links between all nodes)
   const numLinks = Math.max(0, nodeIds.length * (nodeIds.length - 1) / 2);
   while (refs.swarmLinks.length < numLinks) {
     refs.swarmLinks.push(viewer.entities.add({ id: `swarm-link-${refs.swarmLinks.length}` }));

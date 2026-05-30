@@ -111,8 +111,12 @@ async def lifespan(app: FastAPI):
         )
         logger.info("Cognitive loop started @ %dms", cfg.cognitive.loop_ms)
 
+    # Start geospatial polling
+    workflow.intelligence.lifecycle.geospatial.start()
+
     yield
 
+    workflow.intelligence.lifecycle.geospatial.stop()
     workflow.stop()
     if cognitive_task:
         cognitive_task.cancel()

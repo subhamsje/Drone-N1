@@ -1,10 +1,11 @@
 """
 Real-World Intelligence Adapters
-Fetches live environmental data (Weather, Airspace) to enrich the world model.
+Fetches live environmental data (Weather, Airspace) using actual HTTP REST queries.
 """
 
 import logging
 import asyncio
+import httpx
 from typing import Dict, Any
 
 logger = logging.getLogger("real_world_intel")
@@ -14,33 +15,69 @@ class EnvironmentalIntelligence:
         self._cache = {}
 
     async def fetch_metar(self, lat: float, lon: float) -> Dict[str, Any]:
-        """Stubs a call to aviationweather.gov / CheckWX API."""
-        # In production: GET https://api.checkwx.com/metar/lat/lon
-        logger.debug(f"Fetching real-world METAR for {lat}, {lon}")
-        await asyncio.sleep(0.1) # Simulate API latency
-        
-        # Simulated live weather
-        return {
-            "source": "METAR",
-            "wind_speed_kt": 12.5,
-            "wind_direction_deg": 240,
-            "visibility_sm": 10.0,
-            "cloud_cover": "BKN050",
-            "temperature_c": 18.0,
-            "turbulence_probability": 0.15
-        }
+        """Real query to open-meteo for live surface conditions."""
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m,precipitation&timezone=auto",
+                    timeout=2.0
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                current = data.get("current", {})
+                
+                return {
+                    "source": "open-meteo",
+                    "wind_speed_kt": current.get("wind_speed_10m", 0.0) * 0.539957, # km/h to knots
+                    "wind_direction_deg": current.get("wind_direction_10m", 0),
+                    "visibility_sm": 10.0, # open-meteo doesn't always provide visibility
+                    "cloud_cover": "OVC",
+                    "temperature_c": current.get("temperature_2m", 0.0),
+                    "turbulence_probability": 0.05 if current.get("wind_speed_10m", 0.0) < 15 else 0.3
+                }
+        except Exception as e:
+            logger.error(f"Failed to fetch real weather: {e}")
+            return {
+                "source": "offline",
+                "wind_speed_kt": 0.0,
+                "wind_direction_deg": 0,
+                "visibility_sm": 0.0,
+                "cloud_cover": "CLR",
+                "temperature_c": 0.0,
+                "turbulence_probability": 0.0
+            }
         
     async def fetch_adsb(self, lat: float, lon: float, radius_nm: float = 10.0) -> Dict[str, Any]:
-        """Stubs a call to OpenSky / FlightAware for local airspace traffic."""
-        logger.debug(f"Fetching ADS-B traffic for {lat}, {lon}")
-        await asyncio.sleep(0.1)
-        
-        return {
-            "source": "ADS-B",
-            "traffic_density": "LOW",
-            "active_aircraft_in_radius": 2,
-            "conflict_risk_score": 0.05
-        }
+        """Real query to OpenSky Network for live traffic."""
+        try:
+            lamin = lat - 0.5
+            lomin = lon - 0.5
+            lamax = lat + 0.5
+            lomax = lon + 0.5
+            async with httpx.AsyncClient() as client:
+                # Note: Unauthenticated opensky limits strictly.
+                resp = await client.get(
+                    f"https://opensky-network.org/api/states/all?lamin={lamin}&lomin={lomin}&lamax={lamax}&lomax={lomax}",
+                    timeout=2.0
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                states = data.get("states") or []
+                
+                return {
+                    "source": "opensky",
+                    "traffic_density": "HIGH" if len(states) > 5 else "LOW",
+                    "active_aircraft_in_radius": len(states),
+                    "conflict_risk_score": min(1.0, len(states) * 0.05)
+                }
+        except Exception as e:
+            logger.warning(f"Failed to fetch live ADS-B (possibly rate limited): {e}")
+            return {
+                "source": "offline",
+                "traffic_density": "UNKNOWN",
+                "active_aircraft_in_radius": 0,
+                "conflict_risk_score": 0.0
+            }
         
     async def get_fused_environment(self, lat: float, lon: float) -> Dict[str, Any]:
         """Fuses real-world API data into the Altaria world model context."""

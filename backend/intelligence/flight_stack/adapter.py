@@ -100,16 +100,22 @@ class FlightStackAdapter:
         return self.status()
 
     async def upload_mission(self, waypoints: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Upload georeferenced route to autopilot via MAVSDK (goto sequence v1)."""
+        """Upload georeferenced route to autopilot via MAVSDK Mission plan."""
         if not waypoints:
             return {"success": False, "message": "no waypoints"}
-        await self._bridge.execute_mission_route(waypoints)
+        
+        result = await self._executor.upload_mission(waypoints)
         return {
-            "success": True,
-            "waypoints_uploaded": len(waypoints),
+            "success": result.success,
+            "waypoints_uploaded": len(waypoints) if result.success else 0,
             "stack": self._stack_type.value,
-            "note": "MAVSDK goto sequence; use Mission Planner for full .plan in field ops",
+            "message": result.message
         }
+
+    async def start_mission(self) -> Dict[str, Any]:
+        """Commands MAVSDK to start the uploaded mission."""
+        result = await self._executor.start_mission()
+        return result.to_dict()
 
     async def execute_command(self, command: str, params: Optional[Dict] = None) -> Dict[str, Any]:
         verdict = await self._mavlink.submit_command(command, params or {}, source="operator")

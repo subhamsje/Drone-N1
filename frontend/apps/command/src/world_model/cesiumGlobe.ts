@@ -1,9 +1,10 @@
 import {
   Cartesian3,
   Color,
-  EllipsoidTerrainProvider,
-  OpenStreetMapImageryProvider,
   Viewer as CesiumViewer,
+  createWorldTerrainAsync,
+  createWorldImageryAsync,
+  IonWorldImageryStyle
 } from 'cesium';
 import { ensureCesiumConfigured } from './cesiumRuntime';
 
@@ -34,32 +35,17 @@ export async function configureOperationalGlobe(viewer: CesiumViewer): Promise<G
     skyAtmosphere.saturationShift = 0.2;
   }
 
-  const token = import.meta.env.VITE_CESIUM_ION_TOKEN as string | undefined;
-  if (token) {
-    try {
-      const { createWorldTerrainAsync, IonImageryProvider } = await import('cesium');
-      viewer.terrainProvider = await createWorldTerrainAsync();
-      viewer.imageryLayers.removeAll();
-      viewer.imageryLayers.addImageryProvider(
-        await IonImageryProvider.fromAssetId(2),
-      );
-      viewer.scene.backgroundColor = Color.fromCssColorString('#000508');
-      return 'photoreal';
-    } catch {
-      /* fall through */
-    }
-  }
-
   try {
+    viewer.terrainProvider = await createWorldTerrainAsync();
     viewer.imageryLayers.removeAll();
-    viewer.imageryLayers.addImageryProvider(
-      new OpenStreetMapImageryProvider({ url: 'https://tile.openstreetmap.org/' }),
-    );
-    viewer.terrainProvider = new EllipsoidTerrainProvider();
-    viewer.scene.backgroundColor = Color.fromCssColorString('#020617');
-    globe.baseColor = Color.fromCssColorString('#0c1222');
-    return 'osm';
-  } catch {
+    const imagery = await createWorldImageryAsync({
+      style: IonWorldImageryStyle.AERIAL_WITH_LABELS,
+    });
+    viewer.imageryLayers.addImageryProvider(imagery);
+    viewer.scene.backgroundColor = Color.fromCssColorString('#000508');
+    return 'photoreal';
+  } catch (e) {
+    console.error("Cesium Photoreal load failed, falling back", e);
     viewer.imageryLayers.removeAll();
     globe.baseColor = Color.fromCssColorString('#0c1222');
     viewer.scene.backgroundColor = Color.fromCssColorString('#020617');
@@ -72,4 +58,15 @@ export function flyToOperationalArea(viewer: CesiumViewer, lon: number, lat: num
     destination: Cartesian3.fromDegrees(lon, lat, altM),
     duration: 1.2,
   });
+}
+
+export function zoomToUserLocation(viewer: CesiumViewer): void {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((pos) => {
+      viewer.camera.flyTo({
+        destination: Cartesian3.fromDegrees(pos.coords.longitude, pos.coords.latitude, 2000),
+        duration: 2.0
+      });
+    });
+  }
 }

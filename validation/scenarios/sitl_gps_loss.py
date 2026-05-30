@@ -46,6 +46,7 @@ class SITLValidationSuite:
         
         # 2. Inject Failure
         logger.warning("INJECTING FAULT: GPS Denied Environment")
+        fault_t0 = time.monotonic()
         # In a real environment, this publishes to Gazebo/PX4 fault topics
         self.workflow.ros_node.publish("/altaria/gazebo/fault/gps", {"state": "denied", "noise": 99.9})
         
@@ -58,6 +59,7 @@ class SITLValidationSuite:
         
         # Evaluate state
         snapshot = await self.workflow.bridge.run_cycle()
+        recovery_latency_ms = (time.monotonic() - fault_t0) * 1000.0
         action = snapshot.get("cognition", {}).get("action", "UNKNOWN")
         surv = snapshot.get("cognition", {}).get("composite_survivability", 0.0)
         
@@ -68,7 +70,7 @@ class SITLValidationSuite:
             "recovery_action_taken": action,
             "final_survivability": surv,
             "success": success,
-            "latency_ms": 145.2 # Mocked measurement for CI
+            "latency_ms": round(recovery_latency_ms, 2)
         }
         
         logger.info(f"Scenario Complete. Success: {success} | Action: {action}")
