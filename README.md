@@ -111,8 +111,8 @@ graph TD
 
 ### 🎨 Frontend & Visualization
 <p align="left">
-  <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white" />
-  <img src="https://img.shields.io/badge/Three.js-black?style=for-the-badge&logo=three.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
+  <img src="https://img.shields.io/badge/CesiumJS-black?style=for-the-badge&logo=cesium&logoColor=white" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" />
   <img src="https://img.shields.io/badge/WebSockets-010101?style=for-the-badge&logo=socket.io&logoColor=white" />
 </p>
@@ -121,17 +121,59 @@ graph TD
 <p align="left">
   <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white" />
   <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" />
-  <img src="https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white" />
-  <img src="https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white" />
+  <img src="https://img.shields.io/badge/ClickHouse-FFCC01?style=for-the-badge&logo=clickhouse&logoColor=black" />
+  <img src="https://img.shields.io/badge/MAVSDK-007ACC?style=for-the-badge&logo=drone&logoColor=white" />
 </p>
 
-### 🛰️ Drone & Infrastructure
-<p align="left">
-  <img src="https://img.shields.io/badge/MAVLink-007ACC?style=for-the-badge&logo=drone&logoColor=white" />
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
-  <img src="https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white" />
-  <img src="https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white" />
-</p>
+---
+
+## 🚀 Getting Started: Running the Command Environment
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/subhamsje/Drone-N1.git
+cd Drone-N1
+```
+
+### 2. Backend Setup (Altaria OS Kernel)
+Altaria requires Python 3.10+ and a virtual environment.
+
+```bash
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r backend/requirements.txt
+# Additionally install reality-enforcement core packages
+pip install clickhouse-connect ecdsa mavsdk httpx
+```
+
+**Run Backend:**
+```bash
+PYTHONPATH=. python3 backend/run.py
+```
+*The backend will start at `http://localhost:8080`.*
+
+### 3. Frontend Setup (Planetary Command UI)
+The frontend is a Turborepo monorepo powered by Vite and Cesium.
+
+```bash
+cd frontend
+npm install
+
+# Build the command application
+cd apps/command
+npm run dev
+```
+*The Command Environment will be available at `http://localhost:5173` (or the next available port).*
+
+### 4. Operational Demo
+Once both systems are running:
+1. Open the UI in your browser.
+2. Verify the **System Status HUD** at the top shows `WebSocket: ACTIVE`.
+3. Connect your PX4 SITL or real drone via the `[ CONNECT TO DRONE ]` widget.
+4. Start planning your first planetary mission.
 
 ---
 
