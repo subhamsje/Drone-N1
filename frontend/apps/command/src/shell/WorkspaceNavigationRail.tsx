@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCognitionStore } from '../stores/cognitionStore';
+import { MultiDomainVehicleSelector } from '../robotics/MultiDomainVehicleSelector';
 
 export function WorkspaceNavigationRail() {
   const workspaceMode = useCognitionStore((s) => s.workspaceMode);
@@ -48,8 +49,9 @@ export function WorkspaceNavigationRail() {
         </nav>
       </div>
 
-      {/* Right Tools & Ctrl+K Palette Launcher */}
+      {/* Right Tools: Multi-Domain Selector & Ctrl+K Palette */}
       <div className="flex items-center space-x-3">
+        <MultiDomainVehicleSelector />
         <button
           onClick={() => setCtrlKOpen(true)}
           className="flex items-center space-x-2 bg-slate-900/80 hover:bg-slate-800 text-slate-400 hover:text-white px-3 py-1 rounded-lg border border-slate-800 text-xs font-mono transition-all"
