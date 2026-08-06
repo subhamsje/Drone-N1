@@ -100,6 +100,41 @@ async def get_mission_economics(duration_min: float = 14.5, battery_wh: float = 
     return calc.calculate_mission_cost(duration_min, battery_wh)
 
 
+class SignCommandBody(BaseModel):
+    command: str = "TAKEOFF"
+    params: Dict[str, Any] = {"altitude_m": 120.0}
+    operator_id: str = "Capt.Vance"
+
+
+@router.post("/security/sign-command")
+async def sign_command(body: SignCommandBody):
+    from backend.security import EcdsaCommandSigner
+    signer = EcdsaCommandSigner()
+    return signer.sign_command(body.command, body.params, body.operator_id)
+
+
+@router.post("/security/verify-command")
+async def verify_command(signed_package: Dict[str, Any]):
+    from backend.security import EcdsaCommandSigner
+    signer = EcdsaCommandSigner()
+    valid = signer.verify_signature(signed_package)
+    return {"verified": valid, "uav_id": signed_package.get("uav_id")}
+
+
+@router.get("/security/audit-package")
+async def get_compliance_audit_package(mission_id: str = "MSN-901"):
+    from backend.security import ComplianceAuditExporter
+    exporter = ComplianceAuditExporter()
+    return exporter.generate_audit_package(mission_id)
+
+
+@router.get("/security/soc-status")
+async def get_soc_status():
+    from backend.security import ZeroTrustSocMonitor
+    soc = ZeroTrustSocMonitor()
+    return soc.get_soc_threat_metrics()
+
+
 @router.post("/simulation/weather")
 async def simulate_weather(body: SimulateWeatherBody):
     from backend.simulation import WeatherPhysicsSimulator
