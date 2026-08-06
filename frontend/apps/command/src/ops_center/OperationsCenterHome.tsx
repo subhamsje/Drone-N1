@@ -12,7 +12,33 @@ export function OperationsCenterHome() {
 
   const [activeTab, setActiveTab] = useState<'overview' | 'queue' | 'incidents' | 'topology' | 'analytics'>('overview');
 
-  const runningMissions = [
+  const operating = useOperatingStore((s) => s.operating);
+
+  // Dynamic calculations from stores
+  const rawFleet = (operating?.fleet as any)?.fleet_units || (operating?.fleet as any)?.units;
+  const fleetUnits = Array.isArray(rawFleet) ? rawFleet : [
+    { id: 'Altaria-Alpha', role: 'LEADER', battery: 98, status: 'READY' },
+    { id: 'UAV-101', role: 'WINGMAN', battery: 94, status: 'READY' },
+    { id: 'UAV-102', role: 'WINGMAN', battery: 89, status: 'READY' },
+    { id: 'UAV-103', role: 'RESERVE', battery: 92, status: 'READY' },
+  ];
+  const activeFleetCount = fleetUnits.length;
+
+  const avgConfidence = (
+    (confidence.nav + confidence.vision + confidence.weather + confidence.battery + confidence.loc) / 5
+  ).toFixed(1);
+
+  const runningMissions = operating?.mission?.active_mission ? [
+    {
+      id: operating.mission.active_mission.mission_id || 'MSN-902',
+      name: 'Active Cognitive Operations',
+      drone: 'Altaria-Alpha',
+      status: 'EXECUTING',
+      battery: 84,
+      risk: envelope?.cognition?.composite_survivability && envelope.cognition.composite_survivability > 0.8 ? 'LOW' : 'MEDIUM',
+      progress: 68
+    }
+  ] : [
     { id: 'MSN-902', name: 'Grid Alpha Thermal Patrol', drone: 'Altaria-Alpha', status: 'EXECUTING', battery: 84, risk: 'LOW', progress: 68 },
     { id: 'MSN-903', name: 'Perimeter ISR Scan', drone: 'UAV-101', status: 'IN_TRANSIT', battery: 92, risk: 'NOMINAL', progress: 34 },
     { id: 'MSN-904', name: 'Coastal Wind Corridor', drone: 'UAV-102', status: 'RECOVERY_EVAL', battery: 41, risk: 'MEDIUM', progress: 89 },
@@ -73,16 +99,18 @@ export function OperationsCenterHome() {
         <div className="rounded-xl border border-slate-800/80 bg-slate-900/60 p-4 backdrop-blur-md">
           <div className="text-xs font-mono uppercase text-slate-400">Active Fleet Units</div>
           <div className="text-3xl font-bold text-white mt-1 flex items-baseline justify-between">
-            <span>4 UAVs</span>
+            <span>{activeFleetCount} Units</span>
             <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">100% READY</span>
           </div>
-          <div className="text-xs text-slate-400 mt-2">Altaria-Alpha (Lead), UAV-101, UAV-102, UAV-103</div>
+          <div className="text-xs text-slate-400 mt-2 truncate">
+            {fleetUnits.map((u: any) => u.id).join(', ')}
+          </div>
         </div>
 
         <div className="rounded-xl border border-slate-800/80 bg-slate-900/60 p-4 backdrop-blur-md">
           <div className="text-xs font-mono uppercase text-slate-400">Global AI Confidence</div>
           <div className="text-3xl font-bold text-cyan-400 mt-1 flex items-baseline justify-between">
-            <span>94.8%</span>
+            <span>{avgConfidence}%</span>
             <span className="text-xs font-mono text-cyan-400">NAV: {confidence.nav}%</span>
           </div>
           <div className="text-xs text-slate-400 mt-2">Vision: {confidence.vision}% | Weather: {confidence.weather}%</div>
