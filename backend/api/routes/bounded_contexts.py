@@ -31,6 +31,13 @@ async def search_knowledge_graph(body: SearchKnowledgeBody):
     return kg.search(body.query)
 
 
+class RoboticsCommandBody(BaseModel):
+    vehicle_id: str = "ROVER-01"
+    vehicle_type: str = "UGV_GROUND_ROVER"
+    command: str = "DRIVE_VELOCITY"
+    params: Dict[str, Any] = {"linear_x": 1.5, "angular_z": 0.2}
+
+
 @router.get("/robotics/vehicles")
 async def get_multi_domain_vehicles():
     from backend.robotics import DomainVehicleType, MultiDomainTelemetryEnvelope
@@ -39,6 +46,23 @@ async def get_multi_domain_vehicles():
         "active_vehicle": env.project_schema({"x": 10.0, "y": 20.0, "z": 0.0}),
         "supported_domains": [d.value for d in DomainVehicleType]
     }
+
+
+@router.post("/robotics/command")
+async def dispatch_robotics_command(body: RoboticsCommandBody):
+    from backend.robotics import DomainVehicleType, RoboticsAdapterFactory
+    vtype = DomainVehicleType(body.vehicle_type)
+    adapter = RoboticsAdapterFactory.get_adapter(body.vehicle_id, vtype)
+    
+    if hasattr(adapter, "execute_command"):
+        return adapter.execute_command(body.command, body.params)
+    elif hasattr(adapter, "drive_velocity"):
+        return adapter.drive_velocity(body.params.get("linear_x", 1.0), body.params.get("angular_z", 0.0))
+    elif hasattr(adapter, "transition_flight_mode"):
+        return adapter.transition_flight_mode(body.params.get("target_mode", "FIXED_WING"))
+    elif hasattr(adapter, "control_thrust_rudder"):
+        return adapter.control_thrust_rudder(body.params.get("thrust", 80.0), body.params.get("rudder", 0.0))
+    return {"status": "DISPATCHED", "vehicle_id": body.vehicle_id}
 
 
 @router.get("/edge/hardware")
