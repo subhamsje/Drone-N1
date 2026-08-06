@@ -37,9 +37,48 @@ class SovereignCognitiveKernel:
         self.swarm = SwarmMeshEngine(fleet_id)
         self.mission_intel = MissionIntelligenceEngine()
 
-        self.sensor_trust = {"gps": 98.4, "vio": 94.2, "baro": 96.8, "imu": 99.1}
-        self.global_confidence = {"nav": 98, "vision": 93, "weather": 86, "battery": 95, "loc": 91}
-        logger.info(f"Sovereign Cognitive Kernel v9.0 (10 Sub-Modules) initialized for {uav_id}")
+    def calculate_sensor_trust(self, world_eval: Dict[str, Any], alt_m: float) -> Dict[str, float]:
+        """Calculates dynamic physics-based Sensor Trust Matrix."""
+        rf_risk = world_eval.get("threat_costmap", {}).get("rf_jamming_risk", 0.0)
+        wind_mps = world_eval.get("physics", {}).get("wind_speed_mps", 5.0)
+        turb = world_eval.get("physics", {}).get("turbulence_index", 0.1)
+
+        # Dynamic GPS trust degrades with RF risk & satellite multipath
+        gps_trust = max(14.0, min(99.8, 99.2 - (rf_risk * 45.0) - (wind_mps * 0.3)))
+        
+        # Dynamic VIO trust improves at lower altitudes & clear vision
+        vio_trust = max(25.0, min(98.5, 96.0 - (alt_m / 200.0) * 8.0 - (turb * 10.0)))
+        
+        # Baro trust degrades with turbulence pressure fluctuations
+        baro_trust = max(40.0, min(99.1, 98.0 - (turb * 15.0)))
+        
+        # IMU trust degrades with vibration harmonics
+        imu_trust = max(50.0, min(99.8, 99.5 - (wind_mps * 0.1)))
+
+        return {
+            "gps": round(gps_trust, 1),
+            "vio": round(vio_trust, 1),
+            "baro": round(baro_trust, 1),
+            "imu": round(imu_trust, 1)
+        }
+
+    def calculate_global_confidence(self, sensor_trust: Dict[str, float], risk_eval: Dict[str, Any]) -> Dict[str, int]:
+        """Calculates dynamic operational confidence percentages."""
+        composite_risk = risk_eval.get("composite_risk_score", 0.1)
+        
+        nav_conf = int(max(20, min(99, (sensor_trust["gps"] * 0.6 + sensor_trust["vio"] * 0.4))))
+        vision_conf = int(max(20, min(99, sensor_trust["vio"] * 0.95)))
+        weather_conf = int(max(10, min(99, (1.0 - composite_risk) * 92)))
+        battery_conf = int(max(10, min(99, 95 - composite_risk * 10)))
+        loc_conf = int(max(20, min(99, (sensor_trust["gps"] + sensor_trust["baro"]) / 2)))
+
+        return {
+            "nav": nav_conf,
+            "vision": vision_conf,
+            "weather": weather_conf,
+            "battery": battery_conf,
+            "loc": loc_conf
+        }
 
     def evaluate_cycle(self, pose: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Runs the 200ms cognitive cycle across all 10 sub-modules."""
@@ -55,6 +94,10 @@ class SovereignCognitiveKernel:
         exp_match = self.memory.query_similar_patterns("WIND_SHEAR", world_eval["physics"]["wind_speed_mps"])
         causality_dag = self.explain.build_causality_dag("Wind Shear & Multipath", mpc_eval["selected_trajectory"]["id"], risk_eval)
         swarm_topo = self.swarm.sync_fleet_topology()
+
+        # DYNAMIC SENSOR TRUST & CONFIDENCE COMPUTATION
+        self.sensor_trust = self.calculate_sensor_trust(world_eval, alt)
+        self.global_confidence = self.calculate_global_confidence(self.sensor_trust, risk_eval)
 
         return {
             "uav_id": self.uav_id,
