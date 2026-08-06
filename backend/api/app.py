@@ -20,7 +20,7 @@ if str(_ROOT) not in sys.path:
 from backend.config import BACKEND_CONFIG
 from backend.api.routes import (
     health, telemetry, recovery, fleet, missions, events, stream,
-    cognition, inference, edge, mlops, execution, validation, platform, intelligence,
+    cognition, inference, edge, mlops, execution, validation, platform, intelligence, bounded_contexts
 )
 from backend.api.websocket_hub import get_ws_hub
 from backend.pipeline.autonomous_workflow import AutonomousWorkflowEngine
@@ -162,6 +162,7 @@ def create_app() -> FastAPI:
     app.include_router(validation.router, prefix=prefix)
     app.include_router(platform.router, prefix=prefix)
     app.include_router(intelligence.router, prefix=prefix)
+    app.include_router(bounded_contexts.router, prefix=prefix)
 
     @app.get("/metrics")
     async def prometheus_metrics():
