@@ -155,6 +155,56 @@ async def clear_faults():
     return engine.clear_all_faults()
 
 
+class HandoverBody(BaseModel):
+    target_gcs: str = "GCS-BETA-LONDON"
+    uav_id: str = "Altaria-Alpha"
+
+class FailoverBody(BaseModel):
+    target_link: str = "STARLINK_SATELLITE"
+
+
+@router.get("/execution/hitl-telemetry")
+async def get_hitl_telemetry():
+    from backend.execution import HitlHardwareBridge
+    bridge = HitlHardwareBridge()
+    return bridge.get_hardware_telemetry()
+
+
+@router.get("/collaboration/federation-mesh")
+async def get_federation_mesh():
+    from backend.collaboration import MultiOperatorFederationMesh
+    mesh = MultiOperatorFederationMesh()
+    return {"mesh_nodes": mesh.get_mesh_topology()}
+
+
+@router.post("/collaboration/handover")
+async def initiate_operator_handover(body: HandoverBody):
+    from backend.collaboration import MultiOperatorFederationMesh
+    mesh = MultiOperatorFederationMesh()
+    return mesh.initiate_handover(body.target_gcs, body.uav_id)
+
+
+@router.get("/intelligence/webrtc-stream")
+async def get_webrtc_stream_metadata():
+    from backend.intelligence import RtspWebRtcStreamer
+    streamer = RtspWebRtcStreamer()
+    return streamer.get_stream_metadata()
+
+
+@router.get("/execution/network-status")
+async def get_network_status():
+    from backend.execution import MultiLinkNetworkFailover
+    failover = MultiLinkNetworkFailover()
+    return failover.get_network_status()
+
+
+@router.post("/execution/network-failover")
+async def execute_network_failover(body: FailoverBody):
+    from backend.execution import MultiLinkNetworkFailover
+    failover = MultiLinkNetworkFailover()
+    return failover.trigger_failover(body.target_link)
+
+
 @router.post("/simulation/weather")
 async def simulate_weather(body: SimulateWeatherBody):
     from backend.simulation import WeatherPhysicsSimulator

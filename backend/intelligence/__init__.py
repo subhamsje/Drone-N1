@@ -1,5 +1,5 @@
-"""Altaria mission intelligence layer — above PX4/ArduPilot/MAVLink."""
+"""Intelligence Bounded Context Package."""
 
-from backend.intelligence.service import MissionIntelligenceService
+from backend.intelligence.rtsp_webrtc_bridge import RtspWebRtcStreamer
 
-__all__ = ["MissionIntelligenceService"]
+__all__ = ["RtspWebRtcStreamer"]
