@@ -4,22 +4,35 @@ import {
   Entity,
   Math as CesiumMath,
   Viewer as CesiumViewer,
+  HeightReference,
 } from 'cesium';
 import type { FutureBranch } from '@altaria/realtime-engine';
 import type { CognitionRenderState } from '@altaria/realtime-engine';
 import type { GeoFence, GeoWaypoint } from '../stores/missionStore';
 import { initAirspaceOverlays, syncAirspaceOverlays, type AirspaceEntities } from './airspaceOverlays';
 import { initEnvironmentalOverlays, syncEnvironmentalOverlays, type EnvironmentEntities } from './environmentalOverlays';
+import { useOperatingStore } from '../stores/operatingStore';
 
 export type GlobeLayerRefs = {
   aircraft?: Entity;
+  pastTrail?: Entity;
+  predictedTrail?: Entity;
   adaptiveRoute?: Entity;
   governanceRoute?: Entity;
+  takeoffPoint?: Entity;
+  landingZone?: Entity;
+  recoveryRoute?: Entity;
+  riskField?: Entity;
+  quadrantMechanical?: Entity;
+  quadrantSensor?: Entity;
+  quadrantComms?: Entity;
+  quadrantAI?: Entity;
   futureBranches: Entity[];
   waypoints: Entity[];
   geofences: Entity[];
   swarmNodes: Entity[];
   swarmLinks: Entity[];
+  fleetDrones: Map<string, Entity>;
   airspace: AirspaceEntities;
   environment: EnvironmentEntities;
 };
@@ -31,6 +44,7 @@ export function initGlobeLayers(viewer: CesiumViewer): GlobeLayerRefs {
     geofences: [],
     swarmNodes: [],
     swarmLinks: [],
+    fleetDrones: new Map(),
     airspace: initAirspaceOverlays(viewer),
     environment: initEnvironmentalOverlays(viewer),
   };
@@ -63,6 +77,62 @@ export function syncCognitionLayers(
   const t = state.twin;
   const alt = g.altM + 6378137;
   const pos = Cartesian3.fromDegrees(g.lon, g.lat, alt);
+  const survivability = useOperatingStore.getState().operating?.survivability;
+  const quadrants = survivability?.risk_quadrants;
+
+  // 4-Quadrant Risk Field (Phase 6 & 7)
+  if (!refs.riskField) {
+    refs.riskField = viewer.entities.add({
+      id: 'planetary-risk-field',
+      ellipse: {
+        semiMajorAxis: 5000,
+        semiMinorAxis: 5000,
+        material: Color.fromCssColorString('#f43f5e').withAlpha(0.05),
+        outline: true,
+        outlineColor: Color.fromCssColorString('#f43f5e').withAlpha(0.2),
+        height: 5,
+      }
+    });
+
+    // Sub-quadrants for mechanical, sensor, comms, ai
+    const quadSize = 2500;
+    refs.quadrantMechanical = viewer.entities.add({
+      id: 'risk-mech',
+      ellipse: { semiMajorAxis: quadSize, semiMinorAxis: quadSize, material: Color.RED.withAlpha(0.1) }
+    });
+    refs.quadrantSensor = viewer.entities.add({
+      id: 'risk-sensor',
+      ellipse: { semiMajorAxis: quadSize, semiMinorAxis: quadSize, material: Color.YELLOW.withAlpha(0.1) }
+    });
+    refs.quadrantComms = viewer.entities.add({
+      id: 'risk-comms',
+      ellipse: { semiMajorAxis: quadSize, semiMinorAxis: quadSize, material: Color.BLUE.withAlpha(0.1) }
+    });
+    refs.quadrantAI = viewer.entities.add({
+      id: 'risk-ai',
+      ellipse: { semiMajorAxis: quadSize, semiMinorAxis: quadSize, material: Color.PURPLE.withAlpha(0.1) }
+    });
+  }
+
+  if (refs.riskField.ellipse && quadrants) {
+    (refs.riskField as any).position = pos;
+    const risk = state.globe.conflictRisk;
+    (refs.riskField.ellipse.material as any).color = Color.fromCssColorString(
+      risk > 0.6 ? '#f43f5e' : risk > 0.3 ? '#f59e0b' : '#10b981'
+    ).withAlpha(0.1 + risk * 0.2);
+
+    // Position quadrants around aircraft
+    const offset = 0.02;
+    (refs.quadrantMechanical as any).position = Cartesian3.fromDegrees(g.lon - offset, g.lat + offset, alt);
+    (refs.quadrantSensor as any).position = Cartesian3.fromDegrees(g.lon + offset, g.lat + offset, alt);
+    (refs.quadrantComms as any).position = Cartesian3.fromDegrees(g.lon - offset, g.lat - offset, alt);
+    (refs.quadrantAI as any).position = Cartesian3.fromDegrees(g.lon + offset, g.lat - offset, alt);
+
+    (refs.quadrantMechanical?.ellipse?.material as any).color = Color.RED.withAlpha(quadrants.mechanical * 0.4);
+    (refs.quadrantSensor?.ellipse?.material as any).color = Color.YELLOW.withAlpha(quadrants.sensor * 0.4);
+    (refs.quadrantComms?.ellipse?.material as any).color = Color.BLUE.withAlpha(quadrants.comms * 0.4);
+    (refs.quadrantAI?.ellipse?.material as any).color = Color.PURPLE.withAlpha(quadrants.ai * 0.4);
+  }
 
   if (!refs.aircraft) {
     refs.aircraft = viewer.entities.add({
@@ -91,16 +161,39 @@ export function syncCognitionLayers(
         trailTime: 120,
       },
     });
+
+    // Predicted Trail (Phase 1)
+    refs.predictedTrail = viewer.entities.add({
+      id: 'aircraft-predicted-path',
+      polyline: {
+        positions: [],
+        width: 2.0,
+        material: Color.fromCssColorString('#38bdf8').withAlpha(0.4),
+      }
+    });
   } else {
     (refs.aircraft as unknown as { position: Cartesian3 }).position = pos;
+    
+    // Sync Predicted Trail
+    if (refs.predictedTrail?.polyline) {
+      const predPts = branchToGlobePoints(g.lon, g.lat, g.altM, state.twin.branches[0] || { points: [] });
+      (refs.predictedTrail.polyline as any).positions = predPts;
+    }
+
     if (refs.aircraft.point) {
       (refs.aircraft.point as unknown as { color: Color }).color =
         g.conflictRisk > 0.5 || rerouteRequired
           ? Color.fromCssColorString('#f43f5e') // Red alert
           : Color.fromCssColorString('#22d3a8');
     }
+    
+    const air = useOperatingStore.getState().operating?.aircraft;
+    const mode = air?.mode?.toUpperCase() ?? 'COGNITIVE';
+    const rssi = air?.rssi != null ? ` · RSSI ${air.rssi}%` : '';
+
     if (refs.aircraft.label) {
-      (refs.aircraft.label as unknown as { text: string }).text = `${g.uavId}\nALT: ${g.altM.toFixed(1)}m\nHDG: ${t.headingDeg.toFixed(0)}°`;
+      (refs.aircraft.label as unknown as { text: string }).text = 
+        `${g.uavId}\n[${mode}${rssi}]\nALT: ${g.altM.toFixed(1)}m · SPD: ${t.velocityNed ? Math.sqrt(t.velocityNed[0]**2 + t.velocityNed[1]**2).toFixed(1) : '0'}m/s\nHDG: ${t.headingDeg.toFixed(0)}°`;
     }
   }
 
@@ -155,6 +248,36 @@ export function syncMissionLayers(
   geofences: GeoFence[],
   adaptiveOffset: boolean,
 ): void {
+  const op = useOperatingStore.getState().operating;
+  const lz = op?.survivability?.landing_zone;
+
+  // Takeoff Point
+  if (waypoints.length > 0) {
+    if (!refs.takeoffPoint) {
+      refs.takeoffPoint = viewer.entities.add({
+        id: 'mission-takeoff',
+        point: { pixelSize: 14, color: Color.CYAN, outlineColor: Color.WHITE, outlineWidth: 2 },
+        label: { text: 'TAKEOFF', font: '9px JetBrains Mono', fillColor: Color.CYAN, pixelOffset: new Cartesian3(0, 18, 0) }
+      });
+    }
+    (refs.takeoffPoint as any).position = Cartesian3.fromDegrees(waypoints[0].lon, waypoints[0].lat, waypoints[0].altM + 6378137);
+  }
+
+  // Landing Zone
+  if (lz && typeof lz === 'object' && 'lat' in lz) {
+    if (!refs.landingZone) {
+      refs.landingZone = viewer.entities.add({
+        id: 'mission-lz',
+        ellipse: { semiMajorAxis: 200, semiMinorAxis: 200, material: Color.fromCssColorString('#22d3a8').withAlpha(0.25), outline: true, outlineColor: Color.fromCssColorString('#22d3a8') },
+        label: { text: 'EMERGENCY LZ', font: '9px JetBrains Mono', fillColor: Color.fromCssColorString('#22d3a8'), pixelOffset: new Cartesian3(0, -18, 0) }
+      });
+    }
+    (refs.landingZone as any).position = Cartesian3.fromDegrees((lz as any).lon, (lz as any).lat, ((lz as any).alt_m ?? 0) + 6378137);
+    refs.landingZone.show = true;
+  } else if (refs.landingZone) {
+    refs.landingZone.show = false;
+  }
+
   while (refs.waypoints.length < waypoints.length) {
     refs.waypoints.push(viewer.entities.add({ id: `mission-wp-${refs.waypoints.length}` }));
   }
@@ -299,4 +422,49 @@ export function syncSwarmOnGlobe(
   }
 
   viewer.scene.requestRender();
+}
+
+export function syncFleetLayer(
+  viewer: CesiumViewer,
+  refs: GlobeLayerRefs,
+  fleetData: Array<{ id: string; lat: number; lon: number; alt: number; status: string }>
+): void {
+  // Phase 3: Multi Aircraft Ops (100+ drones)
+  const activeIds = new Set(fleetData.map(d => d.id));
+  
+  // Cleanup removed drones
+  for (const [id, entity] of refs.fleetDrones.entries()) {
+    if (!activeIds.has(id)) {
+      viewer.entities.remove(entity);
+      refs.fleetDrones.delete(id);
+    }
+  }
+
+  // Update or add drones
+  fleetData.forEach(drone => {
+    let ent = refs.fleetDrones.get(drone.id);
+    const pos = Cartesian3.fromDegrees(drone.lon, drone.lat, drone.alt + 6378137);
+    
+    if (!ent) {
+      ent = viewer.entities.add({
+        id: `fleet-uav-${drone.id}`,
+        position: pos,
+        point: {
+          pixelSize: 12,
+          color: drone.status === 'ready' ? Color.CYAN : Color.ORANGE,
+          outlineColor: Color.WHITE,
+          outlineWidth: 1,
+        },
+        label: {
+          text: drone.id,
+          font: '8px JetBrains Mono',
+          fillColor: Color.WHITE,
+          pixelOffset: new Cartesian3(0, -18, 0)
+        }
+      });
+      refs.fleetDrones.set(drone.id, ent);
+    } else {
+      (ent as any).position = pos;
+    }
+  });
 }

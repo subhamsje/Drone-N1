@@ -40,7 +40,7 @@ def project_aircraft_snapshot(snapshot: Dict[str, Any], live_telemetry: Optional
     return {
         "uav_id": snapshot.get("uav_id"),
         "connected": live.get("connected", live.get("mode") != "simulation"),
-        "mode": live.get("mode", "cognitive"),
+        "mode": live.get("flight_mode", "cognitive"),
         "geo": geo,
         "altitude_m": alt_m,
         "heading_deg": float(nav.get("heading", 0)),
@@ -49,6 +49,9 @@ def project_aircraft_snapshot(snapshot: Dict[str, Any], live_telemetry: Optional
         "gps_trust": float(trust.get("gps_confidence", 1)),
         "comm_trust": float(trust.get("comm_trust", 0.9)),
         "armed": live.get("armed", False),
+        "gps_satellites": live.get("gps_satellites", 0),
+        "gps_fix": live.get("gps_fix", "none"),
+        "rssi": live.get("rssi", 0.0),
     }
 
 
@@ -56,6 +59,19 @@ def project_survivability_snapshot(snapshot: Dict[str, Any]) -> Dict[str, Any]:
     inf = snapshot.get("inference", {}) or {}
     surv = snapshot.get("survival", {}) or {}
     ps = snapshot.get("probabilistic_safety", {}) or {}
+    risk = snapshot.get("risk", {}) or {}
+    
+    lz = snapshot.get("landing_zone")
+    projected_lz = None
+    if lz and "position" in lz:
+        geo = _ned_to_geo(lz["position"])
+        projected_lz = {
+            **lz,
+            "lat": geo["lat"],
+            "lon": geo["lon"],
+            "alt_m": 0.0
+        }
+
     return {
         "crash_probability": float(inf.get("crash_probability", 0)),
         "composite_survivability": float(ps.get("composite_survivability", 0.5)),
@@ -64,8 +80,16 @@ def project_survivability_snapshot(snapshot: Dict[str, Any]) -> Dict[str, Any]:
         "recovery_success_probability": float(surv.get("recovery_success_probability", 1 - inf.get("crash_probability", 0))),
         "urgency": surv.get("urgency"),
         "strategy": surv.get("strategy"),
-        "landing_zone": snapshot.get("landing_zone"),
+        "landing_zone": projected_lz,
         "recommended_actions": surv.get("recommended_actions", []),
+        "risk_quadrants": {
+            "mechanical": float(risk.get("r_mechanical", 0)),
+            "sensor": float(risk.get("r_sensor", 0)),
+            "comms": float(risk.get("r_comms", 0)),
+            "ai": float(risk.get("r_ai", 0)),
+            "level": risk.get("level", "LOW"),
+            "dominant_source": risk.get("dominant_src", "Nominal")
+        }
     }
 
 
@@ -100,6 +124,20 @@ def project_mission_snapshot(
 
 
 def project_fleet_snapshot(snapshot: Dict[str, Any], fleet_intel: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    members_dict = {}
+    if fleet_intel and "members" in fleet_intel:
+        for m in fleet_intel["members"]:
+            members_dict[m["uav_id"]] = {
+                "aircraft": {
+                    "geo": m.get("geo"),
+                    "altitude_m": m.get("altitude_m", 0),
+                    "battery_pct": m.get("battery", 100) / 100.0,
+                    "connected": True
+                },
+                "survivability": {"composite_survivability": m.get("survivability", 1.0)},
+                "mission": {"active_mission": {"mission_id": "IDLE"}}
+            }
+
     return {
         "fleet_id": snapshot.get("fleet_id"),
         "swarm": snapshot.get("collective_swarm") or snapshot.get("collective_intelligence") or snapshot.get("swarm"),
@@ -107,6 +145,20 @@ def project_fleet_snapshot(snapshot: Dict[str, Any], fleet_intel: Optional[Dict[
         "fleet_learning": snapshot.get("fleet_learning"),
         "autonomous_operations": snapshot.get("autonomous_operations"),
         "intelligence": fleet_intel,
+        "status": members_dict,
+    }
+
+
+def project_hardware_snapshot(snapshot: Dict[str, Any]) -> Dict[str, Any]:
+    hw = snapshot.get("hardware_cognition", {})
+    return {
+        "device": hw.get("device", "jetson_orin"),
+        "motor_wear": float(hw.get("motor_degradation_index", 0.05)),
+        "esc_wear": float(hw.get("esc_wear_prediction", 0.08)),
+        "vibration": float(hw.get("vibration_evolution", 0.1)),
+        "battery_health": float(hw.get("battery_chemistry_health", 0.98)),
+        "fatigue": float(hw.get("structural_fatigue_risk", 0.02)),
+        "urgency": hw.get("maintenance_urgency", "nominal"),
     }
 
 
@@ -120,6 +172,8 @@ def project_operating_state(
     analytics: Optional[Dict[str, Any]] = None,
     edge_status: Optional[Dict[str, Any]] = None,
     flight_stack: Optional[Dict[str, Any]] = None,
+    mlops_status: Optional[Dict[str, Any]] = None,
+    **kwargs,
 ) -> Dict[str, Any]:
     """Single source of truth for the command environment."""
     cognition = project_cognition_envelope(snapshot)
@@ -143,10 +197,11 @@ def project_operating_state(
         "analytics": analytics,
         "edge": edge_status,
         "flight_stack": flight_stack,
+        "hardware": project_hardware_snapshot(snapshot),
+        "mlops": mlops_status or snapshot.get("mlops_status"),
         "recovery": {
             "active": snapshot.get("recovery_workflow"),
             "survival": snapshot.get("survival"),
         },
         "execution": snapshot.get("rt_execution"),
-        "mlops": snapshot.get("inference"),
     }

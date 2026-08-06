@@ -48,13 +48,24 @@ class MissionCopilot:
         waypoints: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
         intent = self.parse_operator_message(message)
+        
+        # Phase 14: Autonomous Checks
+        checks = {
+            "weather": "GREEN" if (geospatial_context or {}).get("weather", {}).get("wind_mps", 0) < 12 else "WARNING",
+            "airspace": "OPEN" if (geospatial_context or {}).get("airspace", {}).get("restriction_level") == "low" else "RESTRICTED",
+            "battery": "OK" if origin.get("battery", 1.0) > 0.3 else "CRITICAL",
+            "traffic": "LOW" if (geospatial_context or {}).get("airspace", {}).get("active_traffic", 0) < 3 else "MODERATE",
+        }
+        
         plan = self._planner.plan_from_intent(intent, origin, geospatial_context, waypoints)
         summary = self._summarize(plan.to_dict())
+        
         return {
             "copilot_message": message,
             "resolved_intent": intent,
+            "checks": checks,
             "plan": plan.to_dict(),
-            "operator_summary": summary,
+            "operator_summary": f"{summary} | Checks: W:{checks['weather']} A:{checks['airspace']} B:{checks['battery']} T:{checks['traffic']}",
         }
 
     def _summarize(self, plan: Dict[str, Any]) -> str:

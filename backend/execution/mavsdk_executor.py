@@ -211,13 +211,24 @@ class MAVSDKExecutor:
         try:
             pos = await self._drone.telemetry.position().__anext__()
             batt = await self._drone.telemetry.battery().__anext__()
+            armed = await self._drone.telemetry.armed().__anext__()
+            mode = await self._drone.telemetry.flight_mode().__anext__()
+            gps = await self._drone.telemetry.gps_info().__anext__()
+            rc = await self._drone.telemetry.rc_status().__anext__()
+            
             return {
                 "lat": pos.latitude_deg,
                 "lon": pos.longitude_deg,
                 "alt_m": pos.relative_altitude_m,
                 "battery_pct": batt.remaining_percent,
+                "armed": armed,
+                "flight_mode": str(mode),
+                "gps_satellites": gps.num_satellites,
+                "gps_fix": str(gps.fix_type),
+                "rssi": rc.signal_strength_percent if rc else 0.0,
             }
         except Exception as e:
+            logger.error(f"Telemetry Fetch Error: {e}")
             return {"error": str(e)}
 
     def get_audit_log(self, limit: int = 50) -> List[Dict]:

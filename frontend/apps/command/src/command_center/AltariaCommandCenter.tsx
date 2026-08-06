@@ -5,14 +5,24 @@ import {
   MissionReplayPanel,
   AnalyticsPanel,
   EvidenceCenterPanel,
+  FleetCommandPanel,
+  HardwareTwinPanel,
+  SecurityCenterPanel,
+  ObservabilityPanel,
+  ModelOpsPanel,
 } from './panels';
 
 const TABS = [
   { id: 'mission', label: 'Mission' },
   { id: 'geo', label: 'Earth' },
-  { id: 'replay', label: 'Replay' },
+  { id: 'fleet', label: 'Fleet' },
+  { id: 'hardware', label: 'Hardware' },
+  { id: 'security', label: 'Security' },
+  { id: 'mlops', label: 'MLOps' },
   { id: 'analytics', label: 'Analytics' },
   { id: 'evidence', label: 'Evidence' },
+  { id: 'obs', label: 'Ops' },
+  { id: 'replay', label: 'Replay' },
 ] as const;
 
 export function AltariaCommandCenter({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
@@ -35,7 +45,7 @@ export function AltariaCommandCenter({ collapsed, onToggle }: { collapsed: boole
   }
 
   return (
-    <aside className="pointer-events-auto absolute left-0 top-14 z-30 flex h-[calc(100%-8rem)] w-[300px] flex-col border-r border-slate-800/80 bg-[#010409]/94 backdrop-blur-md">
+    <aside className="pointer-events-auto absolute left-0 top-0 z-30 flex h-full w-[300px] flex-col border-r border-slate-800/80 bg-[#010409]/94 backdrop-blur-md">
       <header className="flex items-center justify-between border-b border-slate-800/80 px-2 py-2">
         <div>
           <div className="font-mono text-[10px] uppercase tracking-widest text-cyan-600">Altaria Command OS</div>
@@ -64,9 +74,14 @@ export function AltariaCommandCenter({ collapsed, onToggle }: { collapsed: boole
       <div className="flex-1 overflow-y-auto p-2">
         {tab === 'mission' && <MissionCommandPanel />}
         {tab === 'geo' && <GeospatialIntelPanel />}
-        {tab === 'replay' && <MissionReplayPanel />}
+        {tab === 'fleet' && <FleetCommandPanel />}
+        {tab === 'hardware' && <HardwareTwinPanel />}
+        {tab === 'security' && <SecurityCenterPanel />}
+        {tab === 'mlops' && <ModelOpsPanel />}
         {tab === 'analytics' && <AnalyticsPanel />}
         {tab === 'evidence' && <EvidenceCenterPanel />}
+        {tab === 'obs' && <ObservabilityPanel />}
+        {tab === 'replay' && <MissionReplayPanel />}
       </div>
     </aside>
   );

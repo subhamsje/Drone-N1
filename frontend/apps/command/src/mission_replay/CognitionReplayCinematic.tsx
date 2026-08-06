@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from 'react';
+import { memo, useMemo, useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { useCognitionStore } from '../stores/cognitionStore';
 import { cognitionEngine } from '../config/runtime';
@@ -77,6 +77,20 @@ export const ReplayTimeline = memo(function ReplayTimeline() {
   const scrubIdx = Math.floor((scrub / 100) * Math.max(0, frames.length - 1));
   const scrubFrame = frames[scrubIdx];
 
+  // Phase 13: 3D Globe Replay Synchronization
+  useEffect(() => {
+    if (scrubFrame && scrub < 100) {
+      const engine = cognitionEngine();
+      if (scrubFrame.pose?.geo) {
+        engine.applyLiveAircraft(
+          scrubFrame.pose.geo,
+          scrubFrame.pose.altitude_m,
+          scrubFrame.pose.heading_deg
+        );
+      }
+    }
+  }, [scrubIdx, scrub]);
+
   return (
     <div className="ops-panel ops-panel-accent flex h-full flex-col px-3 py-2">
       <div className="mb-1 flex items-center justify-between">
@@ -98,6 +112,32 @@ export const ReplayTimeline = memo(function ReplayTimeline() {
         ))}
       </div>
       <ReactECharts key={uiVersion} option={option} style={{ height: 64 }} opts={{ renderer: 'canvas' }} lazyUpdate />
+      <div className="mt-1 flex items-center gap-2">
+        <button 
+          onClick={() => setScrub(Math.max(0, scrub - 10))}
+          className="p-1 rounded bg-slate-900 text-slate-400 hover:text-white"
+        >
+          «
+        </button>
+        <button 
+          onClick={() => setScrub(scrub === 100 ? 0 : 100)} // Simple toggle logic for demo
+          className="px-2 py-1 rounded bg-cyan-900/40 text-cyan-400 font-mono text-[8px]"
+        >
+          {scrub === 100 ? 'PAUSE' : 'PLAY'}
+        </button>
+        <button 
+          onClick={() => setScrub(Math.min(100, scrub + 10))}
+          className="p-1 rounded bg-slate-900 text-slate-400 hover:text-white"
+        >
+          »
+        </button>
+        <div className="flex-1" />
+        {scrubFrame && (
+          <span className="font-mono text-[8px] text-slate-500">
+            FRAME {scrubIdx} · {scrubFrame.action} · {(scrubFrame.surv * 100).toFixed(0)}% SURV
+          </span>
+        )}
+      </div>
       <input
         type="range"
         min={0}
@@ -106,29 +146,6 @@ export const ReplayTimeline = memo(function ReplayTimeline() {
         onChange={(e) => setScrub(Number(e.target.value))}
         className="mt-1 h-1 w-full cursor-pointer accent-cyan-600"
       />
-      <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap gap-1">
-          {markers.map((m) => (
-            <span
-              key={`${m.idx}-${m.label}`}
-              className={`rounded px-1.5 py-0.5 font-mono text-[8px] ${
-                m.type === 'surv'
-                  ? 'bg-orange-950/60 text-orange-300'
-                  : m.type === 'collapse'
-                    ? 'bg-red-950/70 text-red-300'
-                    : 'bg-slate-900 text-slate-400'
-              }`}
-            >
-              {m.label}
-            </span>
-          ))}
-        </div>
-        {scrubFrame && (
-          <span className="font-mono text-[8px] text-slate-500">
-            t−{frames.length - scrubIdx} · {scrubFrame.action} · surv {(scrubFrame.surv * 100).toFixed(0)}%
-          </span>
-        )}
-      </div>
     </div>
   );
 });

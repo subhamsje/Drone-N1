@@ -43,6 +43,7 @@ export interface TwinRenderState {
   altitudeM: number;
   headingDeg: number;
   trajectory: [number, number, number][];
+  velocityNed?: [number, number, number];
   branches: FutureBranch[];
   /** Worst-case predicted path */
   crashPath: [number, number, number][];
@@ -89,6 +90,7 @@ const DEFAULT_TWIN: TwinRenderState = {
   altitudeM: 10,
   headingDeg: 0,
   trajectory: [[0, 0, 0], [0.5, 0.33, 0.5], [1, 0.5, 1], [1.5, 0.67, 1.8]],
+  velocityNed: [0, 0, 0],
   branches: [],
   crashPath: [[0, 0, 0], [0.8, 0.2, 0.6], [1.6, 0.1, 1.2]],
   landingPoint: [2, 0.05, 2],
@@ -360,6 +362,7 @@ export class CognitionStreamEngine {
     t.turbulence = Number(nodes?.find((n) => n.state_key === 'turbulence_propagation')?.probability ?? 0.15);
     t.altitudeM = env.pose?.altitude_m ?? 10;
     t.headingDeg = env.pose?.heading_deg ?? 0;
+    t.velocityNed = env.pose?.velocity_ned as [number, number, number] | undefined;
     t.gpsUncertainty = 1 - (env.cognition.gps_trust ?? 0.9);
     t.visionUncertainty = 1 - (env.cognition.vision_trust ?? 0.9);
     t.uavId = env.uav_id ?? '—';

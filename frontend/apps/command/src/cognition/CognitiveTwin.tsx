@@ -8,17 +8,19 @@ import { attachGpuLifecycle } from '../runtime/gpuLifecycle';
 import { isRenderDegraded } from '../runtime/renderScheduler';
 import { useCognitionStore } from '../stores/cognitionStore';
 
-export const CognitiveTwin = memo(function CognitiveTwin() {
-  const uavId = useCognitionStore((s) => s.envelope?.uav_id);
+export const CognitiveTwin = memo(function CognitiveTwin({ focusId }: { focusId?: string | null }) {
+  const envelope = useCognitionStore((s) => s.envelope);
+  const uavId = focusId || envelope?.uav_id;
   const os = useCognitionStore((s) => s.envelope?.os_version);
   const degraded = useCognitionStore((s) => s.degraded) || isRenderDegraded();
+
   const onCreated = useCallback(({ gl }: { gl: WebGLRenderer }) => {
     attachGpuLifecycle(gl.domElement, () => useCognitionStore.getState().setDegraded(true));
   }, []);
 
   return (
     <div className="relative h-full w-full bg-[#010409]">
-      <div className="ops-radar-sweep absolute inset-0 opacity-30" />
+      <div className="ops-radar-sweep absolute inset-0 opacity-10" />
       <SpatialHUD />
       <Canvas
         camera={{ position: [4, 3, 4], fov: 50 }}
@@ -30,8 +32,7 @@ export const CognitiveTwin = memo(function CognitiveTwin() {
         <CognitiveTwinScene />
       </Canvas>
       <div className="pointer-events-none absolute bottom-3 left-3 font-mono text-[10px] text-slate-500">
-        COGNITIVE TWIN · {cognitionEngine().renderState.twin.uavId || uavId || '—'} · OS{' '}
-        {cognitionEngine().renderState.twin.osVersion || os || '—'}
+        COGNITIVE TWIN · {uavId || '—'} · OS {os || '—'}
         {degraded ? ' · DEGRADED' : ''}
       </div>
     </div>

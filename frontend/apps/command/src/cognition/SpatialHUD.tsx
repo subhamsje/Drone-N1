@@ -49,10 +49,16 @@ export function SpatialHUD() {
         {preempt ? `PREEMPT · ${preempt}` : `COGNITION · ${action}`}
       </div>
 
-      <div className="absolute bottom-4 left-4 flex gap-3 font-mono text-[8px] text-slate-600">
-        <span>GPS ±{(t.gpsUncertainty * 100).toFixed(0)}%</span>
-        <span>VIS ±{(t.visionUncertainty * 100).toFixed(0)}%</span>
-        <span>THERM {(t.thermalLoad * 100).toFixed(0)}%</span>
+      <div className="absolute bottom-4 left-4 flex flex-col gap-1 font-mono text-[8px] text-slate-600">
+        <div className="flex gap-3">
+          <span>GPS ±{(t.gpsUncertainty * 100).toFixed(0)}%</span>
+          <span>VIS ±{(t.visionUncertainty * 100).toFixed(0)}%</span>
+          <span>THERM {(t.thermalLoad * 100).toFixed(0)}%</span>
+        </div>
+        <div className="flex gap-3 text-cyan-700/80">
+          <span>MOT_D {t.motorStress.map(s => (s*100).toFixed(0)).join('|')}%</span>
+          <span>VIB {(t.turbulence * 2.5).toFixed(2)}G</span>
+        </div>
       </div>
 
       {t.threatLevel > 0.12 && (

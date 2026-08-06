@@ -19,14 +19,21 @@ async def execution_status(request: Request):
     intel = getattr(workflow, "intelligence", None)
     if intel:
         stack = intel.flight_stack.status()
-        tel = await intel.flight_stack.get_live_telemetry()
+        try:
+            tel = await intel.flight_stack.get_live_telemetry()
+        except (ConnectionError, Exception) as e:
+            tel = {"connected": False, "status": "disconnected", "message": str(e)}
         return {**stack, "telemetry": tel}
     kernel = workflow.bridge.os_kernel
+    try:
+        telemetry = await kernel.px4.executor.get_telemetry()
+    except (ConnectionError, Exception) as e:
+        telemetry = {"connected": False, "status": "disconnected", "message": str(e)}
     return {
         "px4_connected": kernel.px4.executor._connected,
         "mode": kernel.px4.executor.mode.value,
         "audit_log": kernel.px4.executor.get_audit_log(10),
-        "telemetry": await kernel.px4.executor.get_telemetry(),
+        "telemetry": telemetry,
     }
 
 

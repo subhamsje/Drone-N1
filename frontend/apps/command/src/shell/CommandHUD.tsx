@@ -11,38 +11,35 @@ export function CommandHUD() {
   const setViewMode = useCognitionStore((s) => s.setViewMode);
 
   return (
-    <header className="relative z-20 flex h-14 shrink-0 items-center justify-between border-b border-teal-500/20 bg-slate-950/90 px-6 backdrop-blur-xl">
+    <header className="relative z-40 flex h-14 shrink-0 items-center border-b border-teal-500/20 bg-slate-950/90 px-4 backdrop-blur-xl">
       {/* Decorative scanline overlay on header */}
       <div className="absolute inset-0 pointer-events-none ops-scanlines opacity-50" />
 
-      <div className="flex items-center gap-6 z-10">
-        <div className="flex items-center gap-4">
-          <div className="h-4 w-1 bg-teal-500" />
+      {/* Left Sector: Branding & System State */}
+      <div className="flex w-1/3 items-center gap-4 z-10 overflow-hidden">
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="h-4 w-1 bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.6)]" />
           <div className="flex flex-col">
-            <span className="font-mono text-sm font-bold tracking-[0.3em] text-teal-400 ops-hud-glow">ALTARIA</span>
-            <span className="text-[8px] uppercase tracking-[0.2em] text-teal-500/60">Planetary Cognition</span>
+            <span className="font-mono text-sm font-bold tracking-[0.2em] text-teal-400 ops-hud-glow">ALTARIA</span>
+            <span className="text-[7px] uppercase tracking-[0.1em] text-teal-500/60 leading-none">Command environment</span>
           </div>
         </div>
         
-        <div className="flex items-center gap-3 border-l border-slate-800/80 pl-6">
-          <span className="font-mono text-[10px] text-slate-400 tracking-wider">
-            [SYS] KERNEL <span className="text-slate-300">{os ?? 'A.3.1'}</span>
+        <div className="hidden lg:flex items-center gap-3 border-l border-slate-800/80 pl-4 overflow-hidden">
+          <span className="font-mono text-[9px] text-slate-500 tracking-wider whitespace-nowrap">
+            [KERNEL] <span className="text-slate-300">{os ?? 'A.8.0'}</span>
           </span>
           {surv != null && (
-            <span className="font-mono text-[10px] text-emerald-400 tracking-wider">
-              [AI] SURV_CONF <span className="font-bold">{(surv * 100).toFixed(1)}%</span>
-            </span>
-          )}
-          {degraded && (
-            <span className="ml-2 font-mono text-[10px] font-bold text-red-500 tracking-widest ops-threat-glow">
-              ! RENDER DEGRADATION DETECTED !
+            <span className="font-mono text-[9px] text-emerald-400 tracking-wider whitespace-nowrap border-l border-slate-800/80 pl-3">
+              [SURV] <span className="font-bold">{(surv * 100).toFixed(1)}%</span>
             </span>
           )}
         </div>
       </div>
 
-      <div className="flex items-center gap-8 z-10">
-        <div className="flex gap-1">
+      {/* Center Sector: View Controls — Phase 4 */}
+      <div className="flex flex-1 justify-center z-10">
+        <div className="flex gap-0.5 rounded border border-slate-800/60 p-0.5 bg-black/20">
           {(
             [
               { id: 'planet' as const, label: 'PLANET' },
@@ -54,27 +51,34 @@ export function CommandHUD() {
               key={m.id}
               type="button"
               onClick={() => setViewMode(m.id)}
-              className={`px-4 py-1.5 font-mono text-[9px] uppercase tracking-widest transition-all border border-transparent ${
+              className={`px-4 py-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.15em] transition-all ${
                 viewMode === m.id
-                  ? 'border-teal-500/50 bg-teal-500/10 text-teal-300 ops-hud-glow'
-                  : 'text-slate-500 hover:border-slate-700 hover:text-slate-300'
+                  ? 'bg-teal-500/20 text-teal-300 shadow-[inset_0_0_10px_rgba(20,184,166,0.2)]'
+                  : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/40'
               }`}
             >
               {m.label}
             </button>
           ))}
         </div>
+      </div>
 
-        <div className="flex flex-col items-end border-l border-slate-800/80 pl-6">
-          <span
-            className={`font-mono text-[10px] font-bold tracking-widest ${
-              connection === 'connected' ? 'text-teal-400 ops-hud-glow' : 'text-red-500 ops-threat-glow'
-            }`}
-          >
-            UPLINK {connection === 'connected' ? 'SECURE' : 'OFFLINE'}
+      {/* Right Sector: Telemetry & Connection */}
+      <div className="flex w-1/3 justify-end items-center gap-6 z-10 overflow-hidden">
+        {degraded && (
+          <span className="hidden xl:inline-block animate-pulse font-mono text-[8px] font-bold text-red-500 tracking-tighter border border-red-900/50 px-1.5 py-0.5 rounded bg-red-950/20">
+            ! RENDER DEGRADATION !
           </span>
-          <span className="font-mono text-[9px] text-slate-500 tracking-wider mt-0.5">
-            LATENCY {latency.toFixed(0)}MS {dropped > 0 ? `| DROP ${dropped}` : ''}
+        )}
+        
+        <div className="flex flex-col items-end border-r border-slate-800/80 pr-4 mr-1 shrink-0">
+          <span className={`font-mono text-[9px] font-bold tracking-widest leading-none ${
+            connection === 'connected' ? 'text-teal-400 ops-hud-glow' : 'text-red-500'
+          }`}>
+            UPLINK_{connection === 'connected' ? 'SECURE' : 'LOST'}
+          </span>
+          <span className="font-mono text-[8px] text-slate-600 tracking-wider mt-1 leading-none uppercase">
+            {latency.toFixed(0)}ms latency {dropped > 0 ? `| ${dropped} drop` : ''}
           </span>
         </div>
       </div>

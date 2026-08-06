@@ -72,6 +72,7 @@ async def lifespan(app: FastAPI):
             live_tel = await intel.flight_stack.get_live_telemetry()
         except Exception:
             pass
+        
         operating = project_operating_state(
             snapshot,
             intelligence_missions=intel.lifecycle.list_missions(),
@@ -85,6 +86,7 @@ async def lifespan(app: FastAPI):
             edge_status=workflow.edge.get_status(),
             flight_stack=intel.flight_stack.status(),
         )
+
         snapshot["operating_state"] = operating
         repo.upsert_snapshot(snapshot.get("uav_id", cfg.cognitive.uav_id), snapshot)
         await hub.broadcast("operating_state", operating)

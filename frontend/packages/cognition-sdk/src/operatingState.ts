@@ -20,6 +20,9 @@ export interface AircraftSnapshot {
   gps_trust: number;
   comm_trust: number;
   armed?: boolean;
+  gps_satellites?: number;
+  gps_fix?: string;
+  rssi?: number;
 }
 
 export interface SurvivabilitySnapshot {
@@ -32,6 +35,14 @@ export interface SurvivabilitySnapshot {
   strategy?: string;
   landing_zone?: unknown;
   recommended_actions?: unknown[];
+  risk_quadrants: {
+    mechanical: number;
+    sensor: number;
+    comms: number;
+    ai: number;
+    level: string;
+    dominant_source: string;
+  };
 }
 
 export interface MissionSnapshot {
@@ -56,6 +67,7 @@ export interface FleetSnapshot {
   fleet_learning?: Record<string, unknown>;
   autonomous_operations?: Record<string, unknown>;
   intelligence?: Record<string, unknown>;
+  status?: Record<string, any>;
 }
 
 export interface WorldSnapshot {
@@ -63,6 +75,52 @@ export interface WorldSnapshot {
   foundation?: Record<string, unknown>;
   world_cognition?: Record<string, unknown>;
   twin_physics?: Record<string, unknown>;
+}
+
+export interface GeospatialSnapshot {
+  position: { lat: number; lon: number; alt_m: number };
+  timestamp: number;
+  weather: {
+    wind_mps: number;
+    gust_mps: number;
+    visibility_km: number;
+    precip_mm_h: number;
+    turbulence_index: number;
+    source: string;
+  };
+  airspace: {
+    controlled: boolean;
+    restriction_level: string;
+    notam_active: boolean;
+    active_traffic: number;
+    source: string;
+  };
+  rf: {
+    jamming_risk: number;
+    gps_denied_probability: number;
+    comm_degradation: number;
+  };
+  infrastructure: {
+    powerline_proximity_m: number | null;
+    urban_density: string;
+  };
+  layers: Record<string, boolean>;
+}
+
+export interface HardwareSnapshot {
+  device: string;
+  motor_wear: number;
+  esc_wear: number;
+  vibration: number;
+  battery_health: number;
+  fatigue: number;
+  urgency: string;
+}
+
+export interface MLOpsSnapshot {
+  models: unknown[];
+  deployments: Array<{ model_id: string; stage: string; rollout_pct: number }>;
+  training_jobs: number;
 }
 
 export interface OperatingState {
@@ -76,13 +134,14 @@ export interface OperatingState {
   world: WorldSnapshot;
   mission: MissionSnapshot;
   fleet: FleetSnapshot;
-  geospatial?: Record<string, unknown>;
+  hardware: HardwareSnapshot;
+  mlops?: MLOpsSnapshot;
+  geospatial?: GeospatialSnapshot;
   analytics?: Record<string, unknown>;
   edge?: Record<string, unknown>;
   flight_stack?: Record<string, unknown>;
   recovery?: Record<string, unknown>;
   execution?: Record<string, unknown>;
-  mlops?: Record<string, unknown>;
 }
 
 export interface PlatformPollStatus {

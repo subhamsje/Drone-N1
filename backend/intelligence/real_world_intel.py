@@ -31,9 +31,10 @@ class EnvironmentalIntelligence:
                     "wind_speed_kt": current.get("wind_speed_10m", 0.0) * 0.539957, # km/h to knots
                     "wind_direction_deg": current.get("wind_direction_10m", 0),
                     "visibility_sm": 10.0, # open-meteo doesn't always provide visibility
-                    "cloud_cover": "OVC",
+                    "cloud_cover": "OVC" if current.get("precipitation", 0) > 0 else "CLR",
                     "temperature_c": current.get("temperature_2m", 0.0),
-                    "turbulence_probability": 0.05 if current.get("wind_speed_10m", 0.0) < 15 else 0.3
+                    "turbulence_probability": 0.05 if current.get("wind_speed_10m", 0.0) < 15 else 0.3,
+                    "precip_mm_h": float(current.get("precipitation", 0.0))
                 }
         except Exception as e:
             logger.error(f"Failed to fetch real weather: {e}")

@@ -7,6 +7,7 @@ import {
   ScreenSpaceEventHandler,
   ScreenSpaceEventType,
   Viewer as CesiumViewer,
+  Cesium3DTileset,
 } from 'cesium';
 import { cognitionEngine } from '../config/runtime';
 import { flyToOperationalArea, zoomToUserLocation } from './cesiumGlobe';
@@ -16,40 +17,126 @@ import {
   syncCognitionLayers,
   syncMissionLayers,
   syncSwarmOnGlobe,
+  syncFleetLayer,
   type GlobeLayerRefs,
 } from './globeLayers';
 import { useMissionStore } from '../stores/missionStore';
 import { useCognitionStore } from '../stores/cognitionStore';
+import { useOperatingStore } from '../stores/operatingStore';
 
 ensureCesiumConfigured();
 
-export const PlanetaryCognitionGlobe = memo(function PlanetaryCognitionGlobe() {
+export const PlanetaryCognitionGlobe = memo(function PlanetaryCognitionGlobe({ focusId }: { focusId?: string | null }) {
   const viewerRef = useRef<CesiumComponentRef<CesiumViewer> | null>(null);
   const layersRef = useRef<GlobeLayerRefs | null>(null);
   const handlerRef = useRef<ScreenSpaceEventHandler | null>(null);
   const lastRevision = useRef(-1);
   const globeReady = useRef(false);
+  
   const [initStatus, setInitStatus] = useState({ 
     ready: false, 
     error: null as string | null,
     terrain: 'pending',
-    imagery: 'pending'
+    imagery: 'pending',
+    tileCount: 0,
+    tileErrors: 0,
+    googleTilesActive: false,
+    imageryProvider: 'Unknown',
+    terrainProvider: 'Unknown',
+    tilesProvider: 'None',
+    failedRequests: 0,
+    lod: 0,
+    cameraAlt: 0,
+    fps: 0
   });
+
+  const frameCount = useRef(0);
+  const lastFpsUpdate = useRef(performance.now());
 
   const tool = useMissionStore((s) => s.tool);
   const waypoints = useMissionStore((s) => s.waypoints);
   const geofences = useMissionStore((s) => s.geofences);
   const governanceActive = useMissionStore((s) => s.governanceActive);
   const envelope = useCognitionStore((s) => s.envelope);
+  const activeDrawer = useOperatingStore((s) => s.activeDrawer);
+
+  useEffect(() => {
+    if (focusId && envelope?.fleet?.status?.[focusId]) {
+      const drone = envelope.fleet.status[focusId];
+      const viewer = viewerRef.current?.cesiumElement;
+      if (viewer && drone.aircraft?.geo) {
+        flyToOperationalArea(viewer, drone.aircraft.geo.lon, drone.aircraft.geo.lat, 500);
+      }
+    }
+  }, [focusId, envelope]);
+
+  const updateTileStats = useCallback(() => {
+    const viewer = viewerRef.current?.cesiumElement;
+    if (!viewer) return;
+
+    let totalTiles = 0;
+    let errors = 0;
+    let googleActive = false;
+    let failedReqs = 0;
+    let maxLod = 0;
+    let tilesProvider = 'None';
+
+    const primitives = viewer.scene.primitives;
+    for (let i = 0; i < primitives.length; i++) {
+      const p = primitives.get(i);
+      if (p instanceof Cesium3DTileset) {
+        const stats = (p as any).statistics;
+        totalTiles += stats?.numberOfTilesTotal ?? 0;
+        failedReqs += stats?.numberOfFailedRequests ?? 0;
+        
+        // Extract maximum LOD being rendered
+        if (p.root && (p as any)._root) {
+           maxLod = Math.max(maxLod, (p as any)._maximumScreenSpaceError || 0);
+        }
+
+        if ((p as any).asset && (p as any).asset.google) {
+          googleActive = true;
+          tilesProvider = 'Google Photorealistic';
+        } else if (tilesProvider === 'None') {
+          tilesProvider = 'Cesium OSM';
+        }
+      }
+    }
+
+    const imgProvider = viewer.imageryLayers.get(0)?.imageryProvider?.constructor.name || 'Unknown';
+    const terProvider = viewer.terrainProvider?.constructor.name || 'Unknown';
+    const alt = viewer.camera.positionCartographic.height;
+
+    setInitStatus(prev => ({ 
+      ...prev, 
+      tileCount: totalTiles, 
+      tileErrors: errors,
+      googleTilesActive: googleActive,
+      failedRequests: failedReqs,
+      lod: maxLod,
+      cameraAlt: alt,
+      imageryProvider: imgProvider,
+      terrainProvider: terProvider,
+      tilesProvider: tilesProvider
+    }));
+  }, []);
 
   const setupViewer = useCallback(async (viewer: CesiumViewer) => {
     if (globeReady.current) return;
     globeReady.current = true;
     
     try {
-      console.log("[CESIUM] Initializing photoreal globe...");
+      console.log("[CESIUM] Initializing baseline photoreal globe...");
       await applyTacticalGlobe(viewer);
-      setInitStatus(prev => ({ ...prev, terrain: 'loaded', imagery: 'loaded' }));
+      
+      const hasTerrain = !(viewer.terrainProvider instanceof (await import('cesium')).EllipsoidTerrainProvider);
+      const hasImagery = viewer.imageryLayers.length > 0;
+
+      setInitStatus(prev => ({ 
+        ...prev, 
+        terrain: hasTerrain ? 'loaded' : 'fallback', 
+        imagery: hasImagery ? 'loaded' : 'failed' 
+      }));
     } catch (e) {
       console.error("[CESIUM] Initialization failed", e);
       setInitStatus(prev => ({ ...prev, error: String(e) }));
@@ -59,6 +146,7 @@ export const PlanetaryCognitionGlobe = memo(function PlanetaryCognitionGlobe() {
     const g = cognitionEngine().renderState.globe;
     flyToOperationalArea(viewer, g.lon, g.lat);
     setInitStatus(prev => ({ ...prev, ready: true }));
+    (window as any).cesiumViewer = viewer;
 
     handlerRef.current = new ScreenSpaceEventHandler(viewer.scene.canvas);
     handlerRef.current.setInputAction((movement: { position: Cartesian2 }) => {
@@ -83,9 +171,20 @@ export const PlanetaryCognitionGlobe = memo(function PlanetaryCognitionGlobe() {
 
   useEffect(() => {
     let raf = 0;
+    let statInterval = setInterval(updateTileStats, 1000);
+
     const tick = () => {
       const viewer = viewerRef.current?.cesiumElement;
       if (viewer && !viewer.isDestroyed()) {
+        frameCount.current++;
+        const now = performance.now();
+        if (now - lastFpsUpdate.current > 1000) {
+          const fps = Math.round((frameCount.current * 1000) / (now - lastFpsUpdate.current));
+          setInitStatus(prev => ({ ...prev, fps }));
+          frameCount.current = 0;
+          lastFpsUpdate.current = now;
+        }
+
         if (!globeReady.current) {
           void setupViewer(viewer);
         }
@@ -99,6 +198,17 @@ export const PlanetaryCognitionGlobe = memo(function PlanetaryCognitionGlobe() {
             syncCognitionLayers(viewer, layersRef.current, cognitionEngine().renderState, reroute);
           }
           syncMissionLayers(viewer, layersRef.current, waypoints, geofences, reroute);
+          
+          const fleet = envelope?.fleet as { status?: Record<string, any> } | undefined;
+          const fleetData = Object.entries(fleet?.status ?? {}).map(([id, s]) => ({
+            id,
+            lat: s.aircraft?.geo?.lat ?? 0,
+            lon: s.aircraft?.geo?.lon ?? 0,
+            alt: s.aircraft?.altitude_m ?? 0,
+            status: s.aircraft?.connected ? 'ready' : 'offline'
+          }));
+          syncFleetLayer(viewer, layersRef.current, fleetData);
+
           const swarm = envelope?.swarm as { cognition_graph?: { nodes?: string[] } } | undefined;
           const nodes = swarm?.cognition_graph?.nodes ?? ['α', 'β', 'γ', 'δ'];
           const g = cognitionEngine().renderState.globe;
@@ -108,8 +218,11 @@ export const PlanetaryCognitionGlobe = memo(function PlanetaryCognitionGlobe() {
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [setupViewer, waypoints, geofences, governanceActive, envelope?.route_governance, envelope?.swarm]);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearInterval(statInterval);
+    };
+  }, [setupViewer, waypoints, geofences, governanceActive, envelope?.route_governance, envelope?.swarm, updateTileStats]);
 
   useEffect(
     () => () => {
@@ -120,6 +233,14 @@ export const PlanetaryCognitionGlobe = memo(function PlanetaryCognitionGlobe() {
           layersRef.current.aircraft,
           layersRef.current.adaptiveRoute,
           layersRef.current.governanceRoute,
+          layersRef.current.takeoffPoint,
+          layersRef.current.landingZone,
+          layersRef.current.recoveryRoute,
+          layersRef.current.riskField,
+          layersRef.current.quadrantMechanical,
+          layersRef.current.quadrantSensor,
+          layersRef.current.quadrantComms,
+          layersRef.current.quadrantAI,
           ...layersRef.current.futureBranches,
           ...layersRef.current.waypoints,
           ...layersRef.current.geofences,
@@ -168,6 +289,49 @@ export const PlanetaryCognitionGlobe = memo(function PlanetaryCognitionGlobe() {
           >
             [ GPS LOCATE ME ]
           </button>
+        </div>
+
+        {/* 3D Pipeline Diagnostic Panel — Phase 2 */}
+        <div className={`absolute bottom-3 transition-all duration-300 z-30 flex flex-col gap-2 pointer-events-auto ${activeDrawer ? 'right-[330px]' : 'right-3'}`}>
+          <div className="ops-panel p-3 border-cyan-500/30 flex flex-col gap-2 min-w-[240px] max-h-[300px] overflow-y-auto">
+            <p className="font-mono text-[10px] font-bold text-cyan-400 uppercase tracking-widest border-b border-slate-800 pb-1 sticky top-0 bg-[#010409]/95 z-10">
+              3D Pipeline Diagnostics
+            </p>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 font-mono text-[9px] leading-tight">
+              <span className="text-slate-500 uppercase">Imagery Provider:</span> 
+              <span className="text-white truncate" title={initStatus.imageryProvider}>{initStatus.imageryProvider}</span>
+
+              <span className="text-slate-500 uppercase">Terrain Provider:</span> 
+              <span className="text-white truncate" title={initStatus.terrainProvider}>{initStatus.terrainProvider}</span>
+
+              <span className="text-slate-500 uppercase">3D Tiles Provider:</span> 
+              <span className="text-white truncate" title={initStatus.tilesProvider}>{initStatus.tilesProvider}</span>
+
+              <span className="text-slate-500 uppercase">Google Tiles:</span> 
+              <span className={initStatus.googleTilesActive ? 'text-emerald-400 font-bold' : 'text-amber-500'}>
+                {initStatus.googleTilesActive ? 'LOADED' : 'NOT FOUND'}
+              </span>
+              
+              <span className="text-slate-500 uppercase">Tile Count:</span> 
+              <span className="text-white">{initStatus.tileCount.toLocaleString()}</span>
+              
+              <span className="text-slate-500 uppercase">Failed Requests:</span> 
+              <span className={initStatus.failedRequests > 0 ? 'text-red-500' : 'text-emerald-400'}>
+                {initStatus.failedRequests}
+              </span>
+
+              <span className="text-slate-500 uppercase">Current SSE/LOD:</span> 
+              <span className="text-white font-bold">{initStatus.lod.toFixed(1)}</span>
+
+              <span className="text-slate-500 uppercase">Camera Alt:</span> 
+              <span className="text-white">{Math.round(initStatus.cameraAlt).toLocaleString()}m</span>
+
+              <span className="text-slate-500 uppercase border-t border-slate-800 mt-1 pt-1">Engine FPS:</span> 
+              <span className={`mt-1 pt-1 border-t border-slate-800 font-bold ${initStatus.fps < 30 ? 'text-red-500' : initStatus.fps < 55 ? 'text-amber-500' : 'text-emerald-400'}`}>
+                {initStatus.fps}
+              </span>
+            </div>
+          </div>
         </div>
         
         {envelope?.uav_id && (

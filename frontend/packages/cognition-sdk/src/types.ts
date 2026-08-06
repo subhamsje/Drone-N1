@@ -32,6 +32,7 @@ export interface CognitionEnvelope {
   embodied: Record<string, unknown>;
   hardware?: Record<string, unknown>;
   swarm?: Record<string, unknown>;
+  fleet?: any;
   adversarial: Record<string, unknown>;
   trust?: Record<string, unknown>;
   airspace: Record<string, unknown>;

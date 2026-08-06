@@ -4,6 +4,7 @@ export function SystemStatusHud() {
   const op = useOperatingStore((s) => s.operating);
   const platform = useOperatingStore((s) => s.platform);
   const stream = useOperatingStore((s) => s.stream);
+  const setActiveDrawer = useOperatingStore((s) => s.setActiveDrawer);
   
   const connected = stream.connection === 'connected';
   const fs = (op as Record<string, any>)?.flight_stack || {};
@@ -24,34 +25,25 @@ export function SystemStatusHud() {
     return 'text-slate-600';
   };
 
+  const StatusItem = ({ label, value, active, id }: { label: string, value: string, active: any, id: string }) => (
+    <button 
+      onClick={() => setActiveDrawer(id)}
+      className="flex items-center gap-1.5 hover:bg-white/5 px-2 py-0.5 rounded transition-colors group"
+    >
+      <span className={`${statusColor(active)} group-hover:scale-125 transition-transform`}>●</span>
+      <span className="text-slate-500">{label}:</span>
+      <span className={`${statusColor(active)} font-bold`}>{value}</span>
+    </button>
+  );
+
   return (
-    <div className="absolute inset-x-0 top-0 z-30 flex items-center justify-between border-b border-slate-800 bg-[#010409]/95 px-4 py-1.5 backdrop-blur-sm">
-      <div className="flex items-center gap-4 font-mono text-[9px] uppercase tracking-widest">
-        <div className="flex items-center gap-1.5">
-          <span className={statusColor(isRos2)}>●</span>
-          <span className="text-slate-500">ROS2:</span>
-          <span className={statusColor(isRos2)}>{isRos2 ? 'ACTIVE' : 'OFFLINE'}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className={statusColor(isGazebo)}>●</span>
-          <span className="text-slate-500">GAZEBO:</span>
-          <span className={statusColor(isGazebo)}>{isGazebo ? 'RUNNING' : 'OFFLINE'}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className={statusColor(isPx4)}>●</span>
-          <span className="text-slate-500">PX4:</span>
-          <span className={statusColor(isPx4)}>{isPx4 ? 'LINKED' : 'DISCONNECTED'}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className={statusColor(hasMavsdk)}>●</span>
-          <span className="text-slate-500">MAVSDK:</span>
-          <span className={statusColor(hasMavsdk)}>{hasMavsdk ? fs.mode?.toUpperCase() : 'INACTIVE'}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className={statusColor(hasLake)}>●</span>
-          <span className="text-slate-500">LAKE:</span>
-          <span className={statusColor(hasLake)}>{hasLake ? 'STREAMING' : 'OFFLINE'}</span>
-        </div>
+    <div className="relative z-30 flex shrink-0 items-center justify-between border-b border-slate-800 bg-[#010409]/95 px-4 py-1.5 backdrop-blur-sm">
+      <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-widest">
+        <StatusItem label="ROS2" value={isRos2 ? 'ACTIVE' : 'OFFLINE'} active={isRos2} id="ros2" />
+        <StatusItem label="GAZEBO" value={isGazebo ? 'RUNNING' : 'OFFLINE'} active={isGazebo} id="gazebo" />
+        <StatusItem label="PX4" value={isPx4 ? 'LINKED' : 'DISCONNECTED'} active={isPx4} id="px4" />
+        <StatusItem label="MAVSDK" value={hasMavsdk ? fs.mode?.toUpperCase() : 'INACTIVE'} active={hasMavsdk} id="mavsdk" />
+        <StatusItem label="LAKE" value={hasLake ? 'STREAMING' : 'OFFLINE'} active={hasLake} id="lake" />
       </div>
 
       <div className="flex items-center gap-4 font-mono text-[9px] uppercase tracking-widest border-l border-slate-800 pl-4">

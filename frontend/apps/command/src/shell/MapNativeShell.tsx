@@ -1,10 +1,11 @@
+import React, { useState } from 'react';
 import { DroneConnectionCenter } from '../hardware/DroneConnectionCenter';
-import { useState } from 'react';
 import { useOperatingFabric } from '../hooks/useOperatingFabric';
 import { AltariaCommandCenter } from '../command_center/AltariaCommandCenter';
 import { useTacticalAudio } from '../hooks/useTacticalAudio';
-import { useOperatingStore } from '../stores/operatingStore';
+import { useCognitionStore } from '../stores/cognitionStore';
 import { PlanetaryCognitionGlobe } from '../world_model/PlanetaryCognitionGlobe';
+import { CognitiveTwin } from '../cognition/CognitiveTwin';
 import { ReplayTimeline } from '../mission_replay/CognitionReplayCinematic';
 import { RenderErrorBoundary } from '../runtime/RenderErrorBoundary';
 import { OperationalBoot } from './OperationalBoot';
@@ -12,35 +13,91 @@ import { CommandHUD } from './CommandHUD';
 import { MissionCommandRibbon } from '../mission/MissionCommandRibbon';
 import { TelemetryLakeOverlay } from '../analytics/TelemetryLakeOverlay';
 import { SystemStatusHud } from './SystemStatusHud';
+import { SystemDetailDrawer } from './SystemDetailDrawer';
+
+// Next-Level Enterprise Additions
+import { WorkspaceNavigationRail } from './WorkspaceNavigationRail';
+import { OperationsCenterHome } from '../ops_center/OperationsCenterHome';
+import { NodeMissionGraph } from '../mission_studio/NodeMissionGraph';
+import { TacticalArHud } from '../hud/TacticalArHud';
+import { FpvVisionHud } from '../fpv/FpvVisionHud';
+import { CommandPaletteModal } from './CommandPaletteModal';
+import { IncidentManagerModal } from '../incidents/IncidentManagerModal';
+import { AiDebriefCard } from '../mission_replay/AiDebriefCard';
+import { FaultInjectionDrawer } from '../adversarial/FaultInjectionDrawer';
 
 export function MapNativeShell() {
   useOperatingFabric();
   useTacticalAudio();
   const [cmdOpen, setCmdOpen] = useState(true);
+  const viewMode = useCognitionStore((s) => s.viewMode);
+  const workspaceMode = useCognitionStore((s) => s.workspaceMode);
+  const focusedUavId = useCognitionStore((s) => s.focusedUavId);
+
+  const showPlanet = viewMode === 'planet' || viewMode === 'dual';
+  const showTwin = viewMode === 'twin' || viewMode === 'dual';
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-[#010409]">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-[#010409]">
       <OperationalBoot />
+      <WorkspaceNavigationRail />
       <SystemStatusHud />
       <CommandHUD />
-      <AltariaCommandCenter collapsed={!cmdOpen} onToggle={() => setCmdOpen((o) => !o)} />
 
-      <div className={`absolute inset-0 top-14 ${cmdOpen ? 'left-[300px]' : ''}`}>
-        <div className="absolute inset-0">
-          <RenderErrorBoundary domain="Planetary Cognition">
-            <PlanetaryCognitionGlobe />
-          </RenderErrorBoundary>
-          <MissionCommandRibbon />
-          <DroneConnectionCenter />
-        </div>
-      </div>
+      <main className="relative flex-1 overflow-hidden">
+        {/* Operations Center Homepage View */}
+        {workspaceMode === 'ops_center' && <OperationsCenterHome />}
 
-      <footer className={`pointer-events-auto absolute bottom-0 right-0 z-20 border-t border-slate-800/80 bg-[#010409]/95 p-2 ${cmdOpen ? 'left-[300px]' : 'left-0'}`}>
+        {/* Node-Based Mission Studio View */}
+        {workspaceMode === 'mission_studio' && <NodeMissionGraph />}
+
+        {/* 3D Command Globe & Twin Viewports */}
+        {(workspaceMode === 'command_globe' || workspaceMode === 'twin_workbench') && (
+          <>
+            <AltariaCommandCenter collapsed={!cmdOpen} onToggle={() => setCmdOpen((o) => !o)} />
+
+            <div className={`absolute inset-0 transition-all duration-300 ${cmdOpen ? 'left-[300px]' : 'left-0'}`}>
+              <div className="relative h-full w-full flex overflow-hidden">
+                {showPlanet && (
+                  <div className={`${showTwin ? 'w-1/2 border-r border-slate-800/60' : 'w-full'} relative h-full overflow-hidden`}>
+                    <RenderErrorBoundary domain="Planetary Cognition">
+                      <PlanetaryCognitionGlobe focusId={focusedUavId} />
+                    </RenderErrorBoundary>
+                    <TacticalArHud />
+                    {!showTwin && <MissionCommandRibbon />}
+                    <DroneConnectionCenter />
+                  </div>
+                )}
+
+                {showTwin && (
+                  <div className={`${showPlanet ? 'w-1/2' : 'w-full'} relative h-full overflow-hidden`}>
+                    <RenderErrorBoundary domain="Cognition Battlefield">
+                      <CognitiveTwin focusId={focusedUavId} />
+                    </RenderErrorBoundary>
+                    {!showPlanet && <DroneConnectionCenter />}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <FpvVisionHud />
+            <FaultInjectionDrawer />
+          </>
+        )}
+
+        <SystemDetailDrawer />
+      </main>
+
+      <footer className="relative z-30 shrink-0 border-t border-slate-800/80 bg-[#010409]/95 p-2">
         <ReplayTimeline />
       </footer>
       
       <TelemetryLakeOverlay />
+
+      {/* Global Modals */}
+      <CommandPaletteModal />
+      <IncidentManagerModal />
+      <AiDebriefCard />
     </div>
   );
 }
-

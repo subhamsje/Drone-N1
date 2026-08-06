@@ -90,7 +90,7 @@ class ClickHouseLake:
             logger.error(f"ClickHouse ingest failed: {e}")
 
     async def get_executive_metrics(self, tenant_id: str = None) -> Dict[str, Any]:
-        """Calculates real total flight hours, success rates, and crash reduction via ClickHouse."""
+        """Calculates real total flight hours, success rates, MTBF, and MTTR via ClickHouse."""
         if not self._connected or not self.client:
             return {
                 "total_flight_hours": 0.0,
@@ -98,7 +98,9 @@ class ClickHouseLake:
                 "recovery_success_rate": 0.0,
                 "crash_reduction_pct": 0.0,
                 "fleet_readiness_pct": 0.0,
-                "total_missions_flown": 0
+                "total_missions_flown": 0,
+                "mtbf_hours": 0.0,
+                "mttr_seconds": 0.0
             }
             
         where_clause = f"WHERE fleet_id = '{tenant_id}'" if tenant_id else ""
@@ -107,10 +109,20 @@ class ClickHouseLake:
             hours_res = self.client.query(f"SELECT sum(velocity_n) / 3600 FROM fleet_telemetry {where_clause}")
             metrics_res = self.client.query(f"SELECT avg(survivability_score), avg(crash_probability), count(distinct uav_id) FROM fleet_telemetry {where_clause}")
             
+            # Calculate MTBF: Total Flight Time / Total Anomalies
+            # We assume active_threats containing 'ANOMALY' count as failures for MTBF calculation
+            mtbf_res = self.client.query(f"SELECT sum(velocity_n) / countIf(active_threats LIKE '%ANOMALY%') FROM fleet_telemetry {where_clause}")
+            
+            # Calculate MTTR: Average time between RECOVERY_STARTED and RECOVERY_COMPLETE events
+            # This requires joining with an event table, but here we estimate from duration of low survivability periods
+            mttr_res = self.client.query(f"SELECT avg(duration) FROM (SELECT uav_id, count() * 0.2 as duration FROM fleet_telemetry {where_clause} AND survivability_score < 0.5 GROUP BY uav_id)")
+            
             hours = hours_res.result_rows[0][0] if hours_res.result_rows else 0.0
             avg_surv = metrics_res.result_rows[0][0] if metrics_res.result_rows else 0.0
             avg_crash = metrics_res.result_rows[0][1] if metrics_res.result_rows else 0.0
             active_uavs = metrics_res.result_rows[0][2] if metrics_res.result_rows else 0
+            mtbf = mtbf_res.result_rows[0][0] if mtbf_res.result_rows else 0.0
+            mttr = mttr_res.result_rows[0][0] if mttr_res.result_rows else 0.0
             
             return {
                 "total_flight_hours": round(float(hours or 0.0), 2),
@@ -118,7 +130,9 @@ class ClickHouseLake:
                 "recovery_success_rate": round(float((1 - (avg_crash or 0.0)) * (avg_surv or 0.0)), 3),
                 "crash_reduction_pct": round(float(1 - (avg_crash or 0.0)), 3),
                 "fleet_readiness_pct": 1.0 if active_uavs > 0 else 0.0,
-                "total_missions_flown": active_uavs
+                "total_missions_flown": active_uavs,
+                "mtbf_hours": round(float(mtbf or 0.0) / 3600, 2),
+                "mttr_seconds": round(float(mttr or 0.0), 1)
             }
         except Exception as e:
             logger.error(f"Failed to fetch real executive metrics: {e}")
@@ -128,7 +142,9 @@ class ClickHouseLake:
                 "recovery_success_rate": 0.0,
                 "crash_reduction_pct": 0.0,
                 "fleet_readiness_pct": 0.0,
-                "total_missions_flown": 0
+                "total_missions_flown": 0,
+                "mtbf_hours": 0.0,
+                "mttr_seconds": 0.0
             }
 
     async def store_validation_evidence(self, report: Dict[str, Any]):

@@ -4,3 +4,10 @@ trial frames/
 .venv_deps/
 __pycache__/
 *.pyc
+*.log
+*.pid
+node_modules/
+dist/
+venv/
+.env
+tsconfig.tsbuildinfo

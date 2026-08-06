@@ -15,6 +15,7 @@ interface OperatingStoreState {
   activeMissionId: string | null;
   commandTab: string;
   activeTenant: string;
+  activeDrawer: string | null;
   analyticsOverlayOpen: boolean;
   applyOperating: (op: OperatingState, stats: StreamEngineStats) => void;
   applyEnvelopeFlush: (env: CognitionEnvelope, stats: StreamEngineStats, op?: OperatingState | null) => void;
@@ -22,6 +23,7 @@ interface OperatingStoreState {
   setActiveMissionId: (id: string | null) => void;
   setCommandTab: (tab: string) => void;
   setActiveTenant: (tenant: string) => void;
+  setActiveDrawer: (drawer: string | null) => void;
   setAnalyticsOverlayOpen: (open: boolean) => void;
 }
 
@@ -42,6 +44,7 @@ export const useOperatingStore = create<OperatingStoreState>((set, get) => ({
   activeMissionId: null,
   commandTab: 'mission',
   activeTenant: 'default-fleet',
+  activeDrawer: null,
   analyticsOverlayOpen: false,
 
   applyOperating: (op, stats) => {
@@ -76,5 +79,6 @@ export const useOperatingStore = create<OperatingStoreState>((set, get) => ({
   setActiveMissionId: (activeMissionId) => set({ activeMissionId }),
   setCommandTab: (commandTab) => set({ commandTab }),
   setActiveTenant: (activeTenant) => set({ activeTenant }),
+  setActiveDrawer: (activeDrawer) => set({ activeDrawer }),
   setAnalyticsOverlayOpen: (analyticsOverlayOpen) => set({ analyticsOverlayOpen }),
 }));

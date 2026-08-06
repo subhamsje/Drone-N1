@@ -10,6 +10,7 @@ from backend.intelligence.fleet_intel import FleetIntelligenceLayer
 from backend.intelligence.certification import CertificationEvidenceBuilder
 from backend.intelligence.twin_bridge import DigitalTwinBridge
 from backend.intelligence.real_world_intel import EnvironmentalIntelligence
+from backend.mlops.pipeline import MLOpsPipeline
 
 logger = logging.getLogger("mission_intelligence")
 
@@ -32,6 +33,7 @@ class MissionIntelligenceService:
         self.certification = CertificationEvidenceBuilder(kernel.evidence_dag)
         self.twin_bridge = DigitalTwinBridge()
         self.environment = EnvironmentalIntelligence()
+        self.mlops = MLOpsPipeline()
 
     async def on_snapshot(self, snapshot: Dict[str, Any]):
         self.analytics.ingest_snapshot(snapshot)
