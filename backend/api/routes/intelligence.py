@@ -128,3 +128,18 @@ async def load_twin_scenario(body: TwinScenarioBody, request: Request):
 async def export_certification(request: Request):
     svc = _intel(request)
     return svc.certification.export_audit_package(svc.lifecycle.list_missions())
+
+
+@router.get("/reasoning-tree")
+async def get_reasoning_tree(request: Request):
+    from backend.cognitive_kernel import SovereignCognitiveKernel
+    kernel = SovereignCognitiveKernel(uav_id="Altaria-Alpha")
+    return kernel.get_reasoning_tree()
+
+
+@router.get("/learning/experiences")
+async def get_learning_experiences(request: Request):
+    from backend.cognitive_kernel import SovereignCognitiveKernel
+    kernel = SovereignCognitiveKernel(uav_id="Altaria-Alpha")
+    return kernel.get_state_envelope()["certified_learning"]
+
