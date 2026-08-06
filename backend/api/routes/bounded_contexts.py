@@ -135,6 +135,26 @@ async def get_soc_status():
     return soc.get_soc_threat_metrics()
 
 
+class InjectFaultBody(BaseModel):
+    fault_type: str = "MOTOR_RAMP"
+    severity: float = 0.6
+    target_unit: str = "Altaria-Alpha"
+
+
+@router.post("/simulation/inject-fault")
+async def inject_fault(body: InjectFaultBody):
+    from backend.simulation import FaultInjectionEngine
+    engine = FaultInjectionEngine()
+    return engine.inject_fault(body.fault_type, body.severity, body.target_unit)
+
+
+@router.post("/simulation/clear-faults")
+async def clear_faults():
+    from backend.simulation import FaultInjectionEngine
+    engine = FaultInjectionEngine()
+    return engine.clear_all_faults()
+
+
 @router.post("/simulation/weather")
 async def simulate_weather(body: SimulateWeatherBody):
     from backend.simulation import WeatherPhysicsSimulator
