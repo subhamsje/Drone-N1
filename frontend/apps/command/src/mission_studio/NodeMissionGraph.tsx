@@ -12,8 +12,11 @@ interface MissionNode {
   y: number;
 }
 
+import { CorridorSculptor } from './CorridorSculptor';
+
 export function NodeMissionGraph() {
   const setWorkspaceMode = useCognitionStore((s) => s.setWorkspaceMode);
+  const [subView, setSubView] = useState<'blueprint' | 'corridor'>('blueprint');
 
   const [nodes, setNodes] = useState<MissionNode[]>([
     { id: 'n1', type: 'TAKEOFF', label: '01. Autonomous Takeoff', params: 'ALT: 50m • RATE: 2.5m/s', x: 40, y: 140 },
@@ -99,23 +102,39 @@ export function NodeMissionGraph() {
       <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
         <div className="flex items-center space-x-3">
           <span className="px-2.5 py-1 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30 text-xs font-mono font-bold">
-            MISSION STUDIO IDE v2.2
+            MISSION STUDIO IDE v2.3
           </span>
-          <h2 className="text-xl font-bold text-white tracking-tight">
-            Interactive Node-Based Mission Blueprint
-          </h2>
-          <span className="text-xs font-mono text-slate-500">{nodes.length} Nodes Configured</span>
+          <div className="flex items-center gap-1 bg-slate-900/80 p-1 rounded-lg border border-slate-800">
+            <button
+              onClick={() => setSubView('blueprint')}
+              className={`px-3 py-1 rounded text-xs font-mono transition-all ${
+                subView === 'blueprint' ? 'bg-purple-600/30 text-purple-300 font-bold border border-purple-500/40' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              🧩 Node Blueprint
+            </button>
+            <button
+              onClick={() => setSubView('corridor')}
+              className={`px-3 py-1 rounded text-xs font-mono transition-all ${
+                subView === 'corridor' ? 'bg-cyan-600/30 text-cyan-300 font-bold border border-cyan-500/40' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              🌐 3D Corridor Sculptor
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center space-x-3">
-          <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-lg">
-            <button onClick={() => addNode('INSPECT')} className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-slate-300 flex items-center gap-1">
-              <Plus className="w-3 h-3" /> Inspect
-            </button>
-            <button onClick={() => addNode('DETECT')} className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-slate-300 flex items-center gap-1">
-              <Plus className="w-3 h-3" /> Detect
-            </button>
-          </div>
+          {subView === 'blueprint' && (
+            <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-lg">
+              <button onClick={() => addNode('INSPECT')} className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-slate-300 flex items-center gap-1">
+                <Plus className="w-3 h-3" /> Inspect
+              </button>
+              <button onClick={() => addNode('DETECT')} className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-slate-300 flex items-center gap-1">
+                <Plus className="w-3 h-3" /> Detect
+              </button>
+            </div>
+          )}
 
           <button 
             onClick={handleCompileGraph}
@@ -135,8 +154,10 @@ export function NodeMissionGraph() {
         </div>
       </div>
 
-      {/* Main Workspace split into Graph Canvas and Node Details Sidebar */}
-      <div className="flex-1 flex gap-4 overflow-hidden">
+      {subView === 'corridor' ? (
+        <CorridorSculptor />
+      ) : (
+        <div className="flex-1 flex gap-4 overflow-hidden">
         {/* Canvas Area */}
         <div className="flex-1 rounded-xl border border-slate-800 bg-[#050914] relative overflow-hidden bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px]">
           
@@ -253,6 +274,7 @@ export function NodeMissionGraph() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }
