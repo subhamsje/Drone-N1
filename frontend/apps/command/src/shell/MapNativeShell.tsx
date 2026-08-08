@@ -31,6 +31,8 @@ import { OpticShaderToolbar } from '../hud/OpticShaderToolbar';
 import { MissionReplayScrubber } from '../mission_replay/MissionReplayScrubber';
 import { SwarmTopologyModal } from '../swarm/SwarmTopologyModal';
 
+import { PrimaryFlightDisplay } from '../hud/PrimaryFlightDisplay';
+
 export function MapNativeShell() {
   useOperatingFabric();
   useTacticalAudio();
@@ -44,7 +46,7 @@ export function MapNativeShell() {
   const showTwin = viewMode === 'twin' || viewMode === 'dual';
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-[#010409]">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-[#080c14]">
       <OperationalBoot />
       <WorkspaceNavigationRail />
       <SystemStatusHud />
@@ -72,6 +74,7 @@ export function MapNativeShell() {
                     <RenderErrorBoundary domain="Planetary Cognition">
                       <PlanetaryCognitionGlobe focusId={focusedUavId} />
                     </RenderErrorBoundary>
+                    <PrimaryFlightDisplay />
                     <TacticalArHud />
                     <OpticShaderToolbar />
                     {!showTwin && <MissionCommandRibbon />}
