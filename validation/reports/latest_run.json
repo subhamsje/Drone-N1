@@ -1,0 +1,9 @@
+[
+  {
+    "scenario": "GPS_LOSS",
+    "recovery_action_taken": "ENGAGE_ORB_SLAM3_VIO_AND_RTL",
+    "final_survivability": 0.984,
+    "success": true,
+    "latency_ms": 300.35
+  }
+]

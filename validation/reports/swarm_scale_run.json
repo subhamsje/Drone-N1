@@ -1,0 +1,8 @@
+[
+  {
+    "scenario": "SWARM_25_NODES_MESH_CONCURRENCY",
+    "nodes": 25,
+    "propagation_latency_ms": 43.57,
+    "success": true
+  }
+]

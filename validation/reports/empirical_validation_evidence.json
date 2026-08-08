@@ -1,5 +1,5 @@
 {
-  "timestamp": 1786025145.4295502,
+  "timestamp": 1786183063.705739,
   "total_scenarios": 6,
   "passed_scenarios": 6,
   "campaign_results": [
@@ -7,7 +7,7 @@
       "scenario": "PX4_SITL_END_TO_END_MISSION",
       "status": "PASSED",
       "waypoints_executed": 4,
-      "mavsdk_latency_ms": 76.26,
+      "mavsdk_latency_ms": 75.88,
       "altitude_hold_error_m": 0.04,
       "landing_precision_m": 0.08,
       "evidence": "MAVSDK_PX4_SITL_VERIFIED_CLEAN"

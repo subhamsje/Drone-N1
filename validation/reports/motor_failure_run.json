@@ -1,0 +1,9 @@
+[
+  {
+    "scenario": "MOTOR_FAILURE",
+    "recovery_action_taken": "THRUST_REALLOCATION_AND_DIVERT_LZ_ALPHA",
+    "final_survivability": 0.942,
+    "success": true,
+    "latency_ms": 112.4
+  }
+]
