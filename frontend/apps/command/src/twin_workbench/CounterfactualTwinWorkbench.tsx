@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Grid, Sphere } from '@react-three/drei';
+import { OrbitControls, Grid } from '@react-three/drei';
 import { Wind, Radio, Zap, Activity, Play, RotateCcw, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { tacticalAudio } from '../audio/tacticalAudio';
+import { RealisticTacticalDrone } from './RealisticTacticalDrone';
 
 export function CounterfactualTwinWorkbench() {
   const [windMps, setWindMps] = useState(6.2);
@@ -93,40 +94,23 @@ export function CounterfactualTwinWorkbench() {
             </div>
           </div>
 
-          <Canvas camera={{ position: [3, 2.5, 3.5], fov: 45 }}>
-            <ambientLight intensity={0.6} />
-            <directionalLight position={[5, 10, 5]} intensity={1.2} />
-            <pointLight position={[-5, 5, -5]} intensity={0.5} color="#38bdf8" />
+          <Canvas dpr={[1, 2]} camera={{ position: [2.5, 2.0, 2.5], fov: 45 }}>
+            <ambientLight intensity={0.7} />
+            <directionalLight position={[6, 12, 6]} intensity={1.5} castShadow />
+            <pointLight position={[-4, 4, -4]} intensity={0.6} color="#38bdf8" />
+            <pointLight position={[4, -2, 4]} intensity={0.4} color="#10b981" />
             
-            <Grid position={[0, -0.5, 0]} args={[12, 12]} cellColor="#1e293b" sectionColor="#38bdf8" fadeDistance={20} />
+            <Grid position={[0, -0.6, 0]} args={[16, 16]} cellColor="#1e293b" sectionColor="#38bdf8" fadeDistance={24} />
             
-            {/* UAV Core Body Mesh */}
-            <mesh position={[0, 0.4, 0]}>
-              <boxGeometry args={[0.8, 0.15, 0.8]} />
-              <meshStandardMaterial color="#0f172a" roughness={0.3} metalness={0.8} />
-            </mesh>
+            {/* 4K-Caliber Photorealistic Tactical Drone Model */}
+            <RealisticTacticalDrone
+              windMps={windMps}
+              motorDegradationPct={motorDegradationPct}
+              uncertaintyRadius={uncertaintyRadius}
+              riskStatus={riskStatus}
+            />
 
-            {/* Arms */}
-            <mesh position={[0, 0.4, 0]} rotation={[0, Math.PI / 4, 0]}>
-              <boxGeometry args={[1.6, 0.05, 0.08]} />
-              <meshStandardMaterial color="#38bdf8" metalness={0.9} />
-            </mesh>
-            <mesh position={[0, 0.4, 0]} rotation={[0, -Math.PI / 4, 0]}>
-              <boxGeometry args={[1.6, 0.05, 0.08]} />
-              <meshStandardMaterial color="#38bdf8" metalness={0.9} />
-            </mesh>
-
-            {/* Dynamic Spatial Uncertainty Bubble */}
-            <Sphere args={[uncertaintyRadius, 32, 32]} position={[0, 0.4, 0]}>
-              <meshStandardMaterial 
-                color={calculatedRisk > 0.5 ? '#f43f5e' : '#38bdf8'} 
-                transparent 
-                opacity={0.25} 
-                wireframe={calculatedRisk > 0.4} 
-              />
-            </Sphere>
-
-            <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
+            <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} maxPolarAngle={Math.PI / 2 - 0.05} />
           </Canvas>
         </div>
 
