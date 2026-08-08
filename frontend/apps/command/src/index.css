@@ -3,13 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --ops-bg: #00040a;
-  --ops-panel: #050a12;
-  --ops-cyan: #14b8a6;
+  --ops-bg: #080c14;
+  --ops-panel: #0d131f;
+  --ops-card: #121a2a;
+  --ops-cyan: #00e5ff;
+  --ops-blue: #38bdf8;
   --ops-surv: #10b981;
   --ops-threat: #f43f5e;
   --ops-rf: #f59e0b;
-  --ops-grid: rgba(15, 23, 42, 0.55);
+  --ops-grid: rgba(30, 41, 59, 0.45);
 }
 
 html,
@@ -18,9 +20,11 @@ body,
   height: 100%;
   margin: 0;
   background: var(--ops-bg);
+  color: #f1f5f9;
   overflow: hidden;
   user-select: none;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .cesium-viewer-bottom,
@@ -37,38 +41,24 @@ body,
 }
 
 @layer components {
-  .ops-scanlines {
-    pointer-events: none;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.1) 2px,
-      rgba(0, 0, 0, 0.1) 4px
-    );
-    z-index: 99;
+  .ops-panel {
+    border: 1px solid rgba(51, 65, 85, 0.5);
+    background: rgba(13, 19, 31, 0.85);
+    backdrop-filter: blur(12px);
   }
 
-  .ops-panel {
-    @apply rounded-sm border border-slate-800/80 backdrop-blur-md;
-    background-color: rgba(5, 10, 18, 0.9);
+  .ops-card {
+    border: 1px solid rgba(51, 65, 85, 0.4);
+    background: rgba(18, 26, 42, 0.7);
+    backdrop-filter: blur(8px);
   }
 
   .ops-hud-glow {
-    text-shadow: 0 0 8px rgba(20, 184, 166, 0.4);
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
   }
 
   .ops-threat-glow {
-    text-shadow: 0 0 10px rgba(244, 63, 94, 0.6);
-  }
-
-  .pulse {
-    animation: ops-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  @keyframes ops-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    text-shadow: 0 0 12px rgba(244, 63, 94, 0.45);
   }
 
   ::-webkit-scrollbar {
@@ -76,13 +66,14 @@ body,
     height: 4px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-transparent;
+    background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-800 rounded-full;
+    background: rgba(51, 65, 85, 0.6);
+    border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-700;
+    background: rgba(100, 116, 139, 0.8);
   }
 }
 
@@ -92,5 +83,5 @@ canvas {
 }
 
 .cesium-viewer {
-  @apply !bg-[#010409];
+  background-color: var(--ops-bg) !important;
 }

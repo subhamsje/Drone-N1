@@ -66,15 +66,15 @@ export const EnterpriseCommandDeck: React.FC = () => {
   };
 
   return (
-    <div className="h-full w-full bg-[#0b0f19] text-slate-200 flex flex-col font-sans overflow-hidden select-none">
+    <div className="h-full w-full bg-[#080c14] text-slate-200 flex flex-col font-sans overflow-hidden select-none">
       {/* 1. TOP DEFENSE AEROSPACE HUD BAR */}
-      <div className="h-11 bg-[#111827] border-b border-slate-800 px-4 flex items-center justify-between text-xs font-mono shrink-0">
+      <div className="h-11 bg-[#0d131f]/95 border-b border-slate-800/80 px-4 flex items-center justify-between text-xs font-mono shrink-0 backdrop-blur-md">
         {/* Left: Vehicle Callout & State */}
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-bold text-slate-100 text-sm">ALTARIA-ALPHA-01</span>
-            <span className="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400 border border-slate-700">
+            <span className="font-bold text-slate-100 text-sm tracking-tight">ALTARIA-ALPHA-01</span>
+            <span className="px-2 py-0.5 rounded bg-slate-800/80 text-[10px] text-slate-300 border border-slate-700/60 font-mono">
               PX4 FMUv6X
             </span>
           </div>
@@ -86,20 +86,20 @@ export const EnterpriseCommandDeck: React.FC = () => {
             onClick={toggleArm}
             className={`px-2.5 py-0.5 rounded text-[11px] font-bold tracking-wider transition-all ${
               armed
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 shadow-sm'
+                : 'bg-rose-500/15 text-rose-300 border border-rose-500/40'
             }`}
           >
             {armed ? '● ARMED' : '○ DISARMED'}
           </button>
 
           {/* Flight Mode Dropdown */}
-          <div className="flex items-center space-x-1 bg-slate-900 border border-slate-800 rounded px-2 py-0.5">
+          <div className="flex items-center space-x-1.5 bg-slate-900/80 border border-slate-800 rounded px-2.5 py-0.5">
             <span className="text-slate-500 text-[10px]">MODE:</span>
             <select
               value={flightMode}
               onChange={(e) => handleFlightModeChange(e.target.value as any)}
-              className="bg-transparent text-cyan-400 font-bold focus:outline-none cursor-pointer"
+              className="bg-transparent text-sky-400 font-semibold focus:outline-none cursor-pointer"
             >
               <option value="OFFBOARD">OFFBOARD (AI AUTONOMOUS)</option>
               <option value="HOLD">HOLD (LOITER)</option>
