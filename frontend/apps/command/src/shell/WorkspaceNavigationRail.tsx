@@ -1,7 +1,6 @@
 import React from 'react';
 import { useCognitionStore } from '../stores/cognitionStore';
 import { MultiDomainVehicleSelector } from '../robotics/MultiDomainVehicleSelector';
-import { AudioVisualizerWidget } from '../audio/AudioVisualizerWidget';
 import { LayoutDashboard, Globe2, GitMerge, Box, Search, Shield, Activity } from 'lucide-react';
 
 export function WorkspaceNavigationRail() {
@@ -52,10 +51,8 @@ export function WorkspaceNavigationRail() {
         </nav>
       </div>
 
-      {/* Right Tools: Audio Visualizer, 5G Network Pill, Multi-Domain Switcher & Command Search */}
+      {/* Right Tools: 5G Network Pill, Multi-Domain Switcher & Command Search */}
       <div className="flex items-center space-x-3">
-        <AudioVisualizerWidget />
-        
         {/* Network Pill */}
         <div className="hidden lg:flex items-center space-x-2 bg-slate-900/60 border border-slate-800/80 px-2.5 py-1 rounded-lg text-xs font-mono text-slate-300">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
