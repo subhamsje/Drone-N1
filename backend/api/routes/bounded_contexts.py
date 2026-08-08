@@ -210,3 +210,59 @@ async def simulate_weather(body: SimulateWeatherBody):
     from backend.simulation import WeatherPhysicsSimulator
     sim = WeatherPhysicsSimulator()
     return sim.simulate_environment(body.scenario)
+
+
+class InvariantCheckBody(BaseModel):
+    state: Dict[str, Any]
+    intended_command: Optional[str] = None
+
+@router.post("/safety/invariants/assert")
+async def evaluate_safety_invariants(body: InvariantCheckBody):
+    from backend.security.safety_invariants import safety_invariant_engine, SafetyInvariantViolation
+    try:
+        safety_invariant_engine.assert_invariants(body.state, body.intended_command)
+        return {"status": "NOMINAL", "all_invariants_passed": True}
+    except SafetyInvariantViolation as e:
+        return {"status": "VIOLATION", "all_invariants_passed": False, "invariant": e.invariant_name, "detail": e.message}
+
+
+class AutonomyLevelBody(BaseModel):
+    level: str # MANUAL | ASSISTED | SUPERVISED | FULLY_AUTONOMOUS
+
+@router.post("/autonomy/set-level")
+async def set_autonomy_level(body: AutonomyLevelBody):
+    from backend.intelligence.autonomy_gradient import autonomy_manager, AutonomyLevel
+    autonomy_manager.set_level(AutonomyLevel(body.level))
+    return {"status": "SUCCESS", "current_autonomy_level": body.level}
+
+
+@router.get("/swarm/consensus")
+async def get_swarm_consensus_status():
+    from backend.intelligence.swarm_consensus import swarm_consensus_engine
+    return {
+        "leader_id": swarm_consensus_engine.current_leader_id,
+        "term": swarm_consensus_engine.current_term,
+        "total_nodes": len(swarm_consensus_engine.nodes),
+        "threat_count": len(swarm_consensus_engine.shared_threat_map)
+    }
+
+
+class EconomicsCheckBody(BaseModel):
+    distance_km: float
+    flight_duration_mins: float
+
+@router.post("/analytics/mission-economics")
+async def evaluate_mission_economics(body: EconomicsCheckBody):
+    from backend.analytics.mission_economics import mission_economics
+    return mission_economics.evaluate_mission_cost(body.distance_km, body.flight_duration_mins)
+
+
+class ReplaySeekBody(BaseModel):
+    timestamp: float
+
+@router.post("/operations/temporal-replay/seek")
+async def seek_temporal_replay(body: ReplaySeekBody):
+    from backend.operations.temporal_replay import temporal_replay_engine
+    res = temporal_replay_engine.seek(body.timestamp)
+    return {"status": "SEEK_OK", "frame": res}
+

@@ -1,34 +1,57 @@
-"""Mission Economics & Financial ROI Calculator for Enterprise CFOs."""
+"""
+Mission Economics & Fleet ROI Evaluation Engine.
+Computes real-time unit economics per flight hour, per km, and validates commercial mission viability.
+"""
 
-import time
 from typing import Dict, Any
 
-class MissionEconomicsCalculator:
-    def calculate_mission_cost(self, duration_min: float = 14.5, battery_wh: float = 85.0) -> Dict[str, Any]:
-        """Calculates itemized financial cost and estimated enterprise ROI."""
-        energy_cost_usd = (battery_wh / 1000.0) * 0.15
-        battery_wear_cost_usd = (duration_min / 60.0) * 1.50
-        operator_labor_cost_usd = (duration_min / 60.0) * 45.00
-        maintenance_reserve_usd = 2.50
+class MissionEconomicsEngine:
+    ELECTRICITY_COST_PER_KWH = 0.16 # USD
+    BATTERY_PACK_COST_USD = 850.0   # 6S 22000mAh LiPo
+    RATED_LIPO_CYCLES = 300
+    OPERATOR_HOURLY_RATE_USD = 45.0
+    AIRFRAME_DEPRECIATION_PER_KM = 0.12 # USD
 
-        total_cost_usd = energy_cost_usd + battery_wear_cost_usd + operator_labor_cost_usd + maintenance_reserve_usd
-        manual_inspection_cost_usd = 450.00
-        savings_usd = manual_inspection_cost_usd - total_cost_usd
-        roi_multiplier = round(manual_inspection_cost_usd / max(1.0, total_cost_usd), 1)
+    @classmethod
+    def evaluate_mission_cost(cls, distance_km: float, flight_duration_mins: float, avg_power_watts: float = 650.0) -> Dict[str, Any]:
+        """
+        Calculates exact unit economics and financial feasibility.
+        """
+        duration_hours = flight_duration_mins / 60.0
+        
+        # 1. Energy Cost
+        energy_kwh = (avg_power_watts * duration_hours) / 1000.0
+        energy_cost = energy_kwh * cls.ELECTRICITY_COST_PER_KWH
+
+        # 2. Battery Cycle Degradation Cost
+        cycle_cost = cls.BATTERY_PACK_COST_USD / cls.RATED_LIPO_CYCLES
+
+        # 3. Airframe Depreciation & Wear
+        airframe_cost = distance_km * cls.AIRFRAME_DEPRECIATION_PER_KM
+
+        # 4. Operator Labor Cost
+        labor_cost = duration_hours * cls.OPERATOR_HOURLY_RATE_USD
+
+        # Total Mission Cost
+        total_cost_usd = energy_cost + cycle_cost + airframe_cost + labor_cost
+        cost_per_km = total_cost_usd / max(0.1, distance_km)
+
+        # Commercial Viability Gatekeeper
+        is_viable = total_cost_usd < 250.0 and cost_per_km < 15.0
 
         return {
-            "timestamp": time.time(),
-            "duration_min": duration_min,
-            "itemized_costs_usd": {
-                "energy": round(energy_cost_usd, 2),
-                "battery_wear": round(battery_wear_cost_usd, 2),
-                "operator_labor": round(operator_labor_cost_usd, 2),
-                "maintenance_reserve": round(maintenance_reserve_usd, 2),
-                "total_mission_cost": round(total_cost_usd, 2)
+            "distance_km": round(distance_km, 2),
+            "flight_duration_mins": round(flight_duration_mins, 1),
+            "breakdown": {
+                "energy_cost_usd": round(energy_cost, 3),
+                "battery_cycle_depreciation_usd": round(cycle_cost, 2),
+                "airframe_wear_usd": round(airframe_cost, 2),
+                "operator_labor_usd": round(labor_cost, 2),
             },
-            "financial_roi": {
-                "manual_alternative_cost_usd": manual_inspection_cost_usd,
-                "net_savings_usd": round(savings_usd, 2),
-                "roi_multiplier": f"{roi_multiplier}x"
-            }
+            "total_mission_cost_usd": round(total_cost_usd, 2),
+            "cost_per_km_usd": round(cost_per_km, 2),
+            "is_commercially_viable": is_viable,
+            "advisory": "MISSION ECONOMICALLY VIABLE" if is_viable else "MISSION EXCEEDS COST CEILING (Adjust Corridor)",
         }
+
+mission_economics = MissionEconomicsEngine()
