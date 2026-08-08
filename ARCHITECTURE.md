@@ -1,33 +1,87 @@
-# Altaria OS — Planetary Autonomous Aviation Architecture
+# 🌐 Altaria OS / Drone-N1 — Autonomous Systems Operating Platform
 
-## Overview
-Altaria OS is a distributed, high-integrity operating system designed for planetary-scale autonomous aviation command and control. It bridges the gap between low-level flight stacks (PX4, ArduPilot) and high-level cognitive awareness.
+## 🧠 Core Definition
 
-## System Layers
+> **Altaria OS is a distributed, real-time, safety-critical autonomous systems operating platform that unifies multi-agent AI cognition, deterministic command execution, and high-frequency telemetry into a single operator control surface.**
 
-### 1. Planetary Visualization Layer (CesiumJS / Resium)
-The primary interface is a photorealistic 3D environment utilizing Cesium World Terrain and Ion Aerial Imagery. All operational data (Aircraft, Missions, Airspace, Weather) are georeferenced and rendered directly on the globe.
+It sits directly above flight controllers (PX4 / ArduPilot / ROS2 Micro-XRCE-DDS) and below human operator decision-making, functioning as the **intelligence, orchestration, and mission execution layer at scale**.
 
-### 2. Cognitive Kernel (Python / FastAPI)
-The backend kernel orchestrates high-frequency control loops, predictive simulations, and adversarial adaptation. It utilizes an event-driven architecture powered by an asynchronous internal bus.
+---
 
-### 3. Execution Layer (MAVSDK / ROS2)
-*   **MAVSDK**: Direct command authority over PX4/ArduPilot via UDP/serial. Handles mission upload, arming, and atomic command execution.
-*   **ROS2**: High-bandwidth data bus for sensor fusion and inter-process communication. Integrates Gazebo for counterfactual physics simulation.
+## 🏗️ The 8 Core Subsystems
 
-### 4. Intelligence & Risk Engine
-*   **Semantic Planner**: Translates natural language intent into spatial waypoints and corridors.
-*   **Risk Engine**: Multi-quadrant analysis of terrain, weather, battery, and traffic threats.
-*   **Survivability Engine**: probabilistic failure estimation and autonomous recovery branching.
+```
+========================================================================================
+                      ALTARIA OS: DECONSTRUCTED OPERATING ARCHITECTURE
+========================================================================================
 
-### 5. Data Lake (ClickHouse)
-A high-performance OLAP database for storing every telemetry packet, decision record, and mission audit. Powers the Executive Analytics and MLOps performance tracking.
+ [ 4. DOCKABLE OPERATOR WORKSPACE RUNTIME ] ──► (DockLayout, Cesium 3D, 4K R3F Twin, H.264 FPV)
+                 │
+                 ▼
+ [ 2. COMMAND & CONTROL TRANSACTION ENGINE ] ──► (Idempotent Pipeline, ECDSA Signing, PENDING➔CONF)
+                 │
+                 ▼
+ [ 1. COGNITIVE KERNEL (SOFT-RT INFERENCE) ] ──► (Observe ➔ Predict ➔ Evaluate ➔ Decide ➔ Execute ➔ Learn)
+                 │
+                 ▼
+ [ 3. REALTIME TELEMETRY STREAMING SYSTEM ] ──► (3-Tier Priorities, 60fps RAF Batching, Deduplication)
+                 │
+                 ▼
+ [ 5. MISSION GRAPH & DAG EXECUTION ENGINE ] ──► (NodeGraph, MAVSDK Compilation, Dubins Splines)
+                 │
+                 ▼
+ [ 6. SAFETY-CRITICAL LEARNING & SIM LOOP ] ──► (Counterfactual Sim, Offline Training, DO-178C)
+                 │
+                 ▼
+ [ 7. MULTI-DOMAIN ROBOTICS ADAPTER LAYER ] ──► (UAV: Quad/VTOL/Hexa/Octo, UGV: Rovers, USV: Marine)
+                 │
+                 ▼
+ [ 8. SECURITY & COMPLIANCE INFRASTRUCTURE ] ──► (Zero-Trust ECDSA, FAA Part 107 & EASA SORA Audits)
+========================================================================================
+```
 
-## Communication Protocols
-*   **WebSocket**: Real-time binary/JSON telemetry streaming (10Hz+).
-*   **REST**: Mission planning, configuration, and historical analytics.
-*   **MAVLink**: Standard aviation protocol for aircraft communication.
-*   **DDS**: Real-time robotic communication for ROS2/Gazebo.
+### 1. Cognitive Kernel (Autonomous Intelligence Layer)
+- Continuous Soft-RT loop: $\text{Observe} \rightarrow \text{Predict} \rightarrow \text{Evaluate} \rightarrow \text{Decide} \rightarrow \text{Execute} \rightarrow \text{Learn}$ (~200ms cycle).
+- Sub-modules: `world_model`, `decision_engine`, `risk_engine`, `planner`, `explainability`, and `swarm`.
 
-## Zero-Trust Security
-All commands are cryptographically signed using **ECDSA (NIST256p)**. The system enforces strict replay protection and audit logging for every autonomous and manual instruction.
+### 2. Command & Control Layer (Deterministic Execution System)
+- Transactional command pipeline: $\text{UI} \rightarrow \text{Command Registry} \rightarrow \text{State Store} \rightarrow \text{API Gateway} \rightarrow \text{Flight Stack}$.
+- Idempotent lifecycle tracking ($\text{PENDING} \rightarrow \text{ACK} \rightarrow \text{EXECUTED} \rightarrow \text{CONFIRMED}$).
+- Conflict resolution matrix ($\text{SAFETY} > \text{PILOT\_MANUAL} > \text{AI\_AGENT}$).
+
+### 3. Realtime Telemetry & Event Streaming System
+- Prioritized channel tiers: `CRITICAL` (attitude, GPS, battery), `HIGH` (AI decisions, alerts), and `LOW` (logs).
+- 60fps `requestAnimationFrame` batching engine and normalized event ingestion layer.
+
+### 4. Dockable Mission Workspace (Operator Interface Runtime)
+- Tree-based dockable layout engine (`packages/ui-layout`) supporting resizable splits, tab groups, and floating windows.
+- Multi-viewport orchestration: Cesium 3D Planetary Terrain, Low-Latency H.264 FPV, and 4K R3F Digital Twin.
+
+### 5. Mission Graph & Execution Engine
+- Visual node-based DAG authoring (`Takeoff` $\rightarrow$ `Survey` $\rightarrow$ `Detect` $\rightarrow$ `Inspect` $\rightarrow$ `Return`).
+- 1-Click MAVSDK setpoint compilation with corridor safety radius validation.
+
+### 6. Safety-Critical Learning & Simulation Loop
+- Closed-loop offline learning: $\text{Telemetry} \rightarrow \text{Experience Store} \rightarrow \text{Offline Training} \rightarrow \text{Simulation Validation} \rightarrow \text{Deployment}$.
+- Counterfactual stress-testing against synthetic wind shear, GPS loss, and motor failure.
+
+### 7. Multi-Domain Robotics Abstraction Layer
+- Hardware-agnostic adapters:
+  - ✈️ **UAV**: Hybrid VTOL Fixed-Wing Pusher, Tactical Quad-X, Heavy Hexacopter, Coaxial Octocopter.
+  - 🚜 **UGV**: Unmanned Ground Vehicles & Perimeter Rovers.
+  - 🚤 **USV**: Unmanned Surface Vessels & Maritime Sweepers.
+
+### 8. Security & Compliance Layer
+- Zero-Trust ECDSA (NIST256p) cryptographic command signing.
+- Automated FAA Part 107 and EASA SORA compliance audit report generation.
+
+---
+
+## 🧬 Architectural Classification
+
+This project sits at the intersection of:
+- **Robotics OS**
+- **Distributed Systems Platform**
+- **Real-Time Stream Processor**
+- **Mission Planning IDE**
+- **Autonomous AI Control Layer**
