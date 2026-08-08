@@ -9,6 +9,8 @@ on:
 jobs:
   sitl-validation:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: 'true'
     services:
       # ClickHouse Telemetry Lake
       clickhouse:
