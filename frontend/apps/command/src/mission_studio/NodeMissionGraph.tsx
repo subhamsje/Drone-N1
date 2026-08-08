@@ -14,10 +14,11 @@ interface MissionNode {
 
 import { CorridorSculptor } from './CorridorSculptor';
 import { SurveyGridGenerator } from './SurveyGridGenerator';
+import { BatteryFeasibilitySimulator } from './BatteryFeasibilitySimulator';
 
 export function NodeMissionGraph() {
   const setWorkspaceMode = useCognitionStore((s) => s.setWorkspaceMode);
-  const [subView, setSubView] = useState<'blueprint' | 'corridor' | 'survey'>('blueprint');
+  const [subView, setSubView] = useState<'blueprint' | 'corridor' | 'survey' | 'energy'>('blueprint');
 
   const [nodes, setNodes] = useState<MissionNode[]>([
     { id: 'n1', type: 'TAKEOFF', label: '01. Autonomous Takeoff', params: 'ALT: 50m • RATE: 2.5m/s', x: 40, y: 140 },
@@ -130,6 +131,14 @@ export function NodeMissionGraph() {
             >
               📸 Survey Grid
             </button>
+            <button
+              onClick={() => setSubView('energy')}
+              className={`px-3 py-1 rounded text-xs font-mono transition-all ${
+                subView === 'energy' ? 'bg-amber-600/30 text-amber-300 font-bold border border-amber-500/40' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              🔋 Energy & PONR
+            </button>
           </div>
         </div>
 
@@ -163,7 +172,9 @@ export function NodeMissionGraph() {
         </div>
       </div>
 
-      {subView === 'survey' ? (
+      {subView === 'energy' ? (
+        <BatteryFeasibilitySimulator />
+      ) : subView === 'survey' ? (
         <SurveyGridGenerator />
       ) : subView === 'corridor' ? (
         <CorridorSculptor />
