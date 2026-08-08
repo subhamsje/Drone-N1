@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useCognitionStore } from '../stores/cognitionStore';
 import { useOperatingStore } from '../stores/operatingStore';
+import { MissionIntelligenceModal } from '../knowledge/MissionIntelligenceModal';
 
 export function OperationsCenterHome() {
   const setWorkspaceMode = useCognitionStore((s) => s.setWorkspaceMode);
@@ -11,6 +12,7 @@ export function OperationsCenterHome() {
   const sensorTrust = useCognitionStore((s) => s.sensorTrust);
 
   const [activeTab, setActiveTab] = useState<'overview' | 'queue' | 'incidents' | 'topology' | 'analytics'>('overview');
+  const [intelModalOpen, setIntelModalOpen] = useState(false);
 
   const operating = useOperatingStore((s) => s.operating);
 
@@ -73,6 +75,15 @@ export function OperationsCenterHome() {
 
         {/* Action Buttons */}
         <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setIntelModalOpen(true)}
+            className="flex items-center space-x-2 rounded-lg bg-purple-600 hover:bg-purple-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-purple-600/20 transition-all"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span>AI Knowledge Copilot</span>
+          </button>
           <button
             onClick={() => setWorkspaceMode('command_globe')}
             className="flex items-center space-x-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-cyan-600/20 transition-all"
@@ -301,6 +312,9 @@ export function OperationsCenterHome() {
         </div>
 
       </div>
+
+      {/* Mission Intelligence NL Copilot Modal */}
+      <MissionIntelligenceModal isOpen={intelModalOpen} onClose={() => setIntelModalOpen(false)} />
     </div>
   );
 }
