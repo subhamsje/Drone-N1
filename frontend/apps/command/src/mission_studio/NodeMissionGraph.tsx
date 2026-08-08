@@ -16,10 +16,11 @@ import { CorridorSculptor } from './CorridorSculptor';
 import { SurveyGridGenerator } from './SurveyGridGenerator';
 import { BatteryFeasibilitySimulator } from './BatteryFeasibilitySimulator';
 import { SwarmFormationBuilder } from './SwarmFormationBuilder';
+import { ContingencyMatrixEditor } from './ContingencyMatrixEditor';
 
 export function NodeMissionGraph() {
   const setWorkspaceMode = useCognitionStore((s) => s.setWorkspaceMode);
-  const [subView, setSubView] = useState<'blueprint' | 'corridor' | 'survey' | 'energy' | 'swarm'>('blueprint');
+  const [subView, setSubView] = useState<'blueprint' | 'corridor' | 'survey' | 'energy' | 'swarm' | 'contingency'>('blueprint');
 
   const [nodes, setNodes] = useState<MissionNode[]>([
     { id: 'n1', type: 'TAKEOFF', label: '01. Autonomous Takeoff', params: 'ALT: 50m • RATE: 2.5m/s', x: 40, y: 140 },
@@ -148,6 +149,14 @@ export function NodeMissionGraph() {
             >
               🐝 Swarm Formation
             </button>
+            <button
+              onClick={() => setSubView('contingency')}
+              className={`px-3 py-1 rounded text-xs font-mono transition-all ${
+                subView === 'contingency' ? 'bg-rose-600/30 text-rose-300 font-bold border border-rose-500/40' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              🛡️ Fail-Safe Matrix
+            </button>
           </div>
         </div>
 
@@ -181,7 +190,9 @@ export function NodeMissionGraph() {
         </div>
       </div>
 
-      {subView === 'swarm' ? (
+      {subView === 'contingency' ? (
+        <ContingencyMatrixEditor />
+      ) : subView === 'swarm' ? (
         <SwarmFormationBuilder />
       ) : subView === 'energy' ? (
         <BatteryFeasibilitySimulator />
