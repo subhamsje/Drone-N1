@@ -1,90 +1,104 @@
 import React, { useEffect, useState } from 'react';
-import { useCognitionStore } from '../stores/cognitionStore';
+import { useUiStore } from '../global/uiState';
+import { commandRegistry, CommandItem } from '../services/commandRegistry';
+import { Search, Terminal, ArrowRight } from 'lucide-react';
 
 export function CommandPaletteModal() {
-  const ctrlKOpen = useCognitionStore((s) => s.ctrlKOpen);
-  const setCtrlKOpen = useCognitionStore((s) => s.setCtrlKOpen);
-  const setWorkspaceMode = useCognitionStore((s) => s.setWorkspaceMode);
-  const setOpticMode = useCognitionStore((s) => s.setOpticMode);
-  const setActiveIncidentModal = useCognitionStore((s) => s.setActiveIncidentModal);
-  const setDebriefModal = useCognitionStore((s) => s.setDebriefModal);
-
+  const { commandPaletteOpen, setCommandPaletteOpen } = useUiStore();
   const [query, setQuery] = useState('');
+  const [commands, setCommands] = useState<CommandItem[]>([]);
 
-  // Keyboard Event Listener for Ctrl+K / Cmd+K
+  useEffect(() => {
+    setCommands(commandRegistry.getAll());
+  }, [commandPaletteOpen]);
+
+  // Keyboard shortcut listener for Cmd+K / Ctrl+K and Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        setCtrlKOpen(!ctrlKOpen);
+        setCommandPaletteOpen(!commandPaletteOpen);
       }
-      if (e.key === 'Escape' && ctrlKOpen) {
-        setCtrlKOpen(false);
+      if (e.key === 'Escape' && commandPaletteOpen) {
+        setCommandPaletteOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [ctrlKOpen, setCtrlKOpen]);
+  }, [commandPaletteOpen, setCommandPaletteOpen]);
 
-  if (!ctrlKOpen) return null;
+  if (!commandPaletteOpen) return null;
 
-  const actions = [
-    { title: 'Launch Operations Center Homepage', cat: 'WORKSPACE', action: () => { setWorkspaceMode('ops_center'); setCtrlKOpen(false); } },
-    { title: 'Switch to 3D Planetary Command Globe', cat: 'WORKSPACE', action: () => { setWorkspaceMode('command_globe'); setCtrlKOpen(false); } },
-    { title: 'Open Node-Based Mission Studio Graph', cat: 'WORKSPACE', action: () => { setWorkspaceMode('mission_studio'); setCtrlKOpen(false); } },
-    { title: 'Inspect 20D Digital Twin Workbench', cat: 'WORKSPACE', action: () => { setWorkspaceMode('twin_workbench'); setCtrlKOpen(false); } },
-    { title: 'Export Signed FAA / EASA Audit Package (PDF)', cat: 'SECURITY', action: () => { fetch('/api/v1/bounded-contexts/security/audit-package').then(() => alert("FAA/EASA Audit Package Generated")); setCtrlKOpen(false); } },
-    { title: 'Trigger Fault Injection: GPS Jamming & Multipath', cat: 'SANDBOX', action: () => { fetch('/api/v1/bounded-contexts/simulation/inject-fault', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fault_type: 'GPS_JAMMING' }) }); setCtrlKOpen(false); } },
-    { title: 'Switch Vehicle Mode: VTOL Fixed-Wing Pusher', cat: 'ROBOTICS', action: () => { fetch('/api/v1/bounded-contexts/robotics/command', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vehicle_id: 'VTOL-99', vehicle_type: 'VTOL_HYBRID', command: 'TRANSITION_FLIGHT_MODE', params: { target_mode: 'FIXED_WING' } }) }); setCtrlKOpen(false); } },
-    { title: 'Initiate Base Station Operator Handover', cat: 'FEDERATION', action: () => { fetch('/api/v1/bounded-contexts/collaboration/handover', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target_gcs: 'GCS-BETA-LONDON' }) }); setCtrlKOpen(false); } },
-    { title: 'Set Optic Shader: Thermal / FLIR', cat: 'SHADERS', action: () => { setOpticMode('thermal'); setCtrlKOpen(false); } },
-    { title: 'Set Optic Shader: Night Vision', cat: 'SHADERS', action: () => { setOpticMode('nightvision'); setCtrlKOpen(false); } },
-    { title: 'Set Optic Shader: Wireframe / SAR', cat: 'SHADERS', action: () => { setOpticMode('wireframe'); setCtrlKOpen(false); } },
-    { title: 'Inspect Active Incidents (#INC-882)', cat: 'INCIDENTS', action: () => { setActiveIncidentModal(true); setCtrlKOpen(false); } },
-    { title: 'Open Post-Flight AI Mission Debrief', cat: 'ANALYTICS', action: () => { setDebriefModal(true); setCtrlKOpen(false); } },
-  ];
-
-  const filtered = actions.filter((a) =>
-    a.title.toLowerCase().includes(query.toLowerCase()) || a.cat.toLowerCase().includes(query.toLowerCase())
+  const filtered = commands.filter(
+    (cmd) =>
+      cmd.title.toLowerCase().includes(query.toLowerCase()) ||
+      cmd.category.toLowerCase().includes(query.toLowerCase()) ||
+      (cmd.description && cmd.description.toLowerCase().includes(query.toLowerCase()))
   );
 
+  const handleSelect = async (cmd: CommandItem) => {
+    setCommandPaletteOpen(false);
+    await cmd.execute();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/70 backdrop-blur-md p-4">
-      <div className="w-full max-w-xl rounded-xl border border-cyan-500/40 bg-[#050914] text-slate-200 shadow-2xl overflow-hidden font-sans">
-        {/* Search Input Bar */}
-        <div className="flex items-center px-4 py-3 border-b border-slate-800">
-          <svg className="w-5 h-5 text-cyan-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/80 backdrop-blur-md p-4 animate-fadeIn select-none font-mono text-xs">
+      <div className="w-full max-w-xl rounded-2xl border border-slate-800 bg-[#0d131f] text-slate-200 shadow-2xl shadow-black/90 overflow-hidden flex flex-col">
+        {/* Search Header */}
+        <div className="flex items-center px-4 py-3.5 border-b border-slate-800/80 bg-[#111827]">
+          <Search className="w-4 h-4 text-sky-400 mr-3 shrink-0" />
           <input
             type="text"
             autoFocus
-            placeholder="Type a command or search workspace (e.g., 'ops', 'thermal', 'incident')..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none font-mono"
+            placeholder="Type a command or search action (e.g. 'RTL', 'FPV', 'Preset')..."
+            className="w-full bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none"
           />
-          <span className="text-[10px] font-mono text-slate-500 border border-slate-800 px-2 py-0.5 rounded">ESC</span>
+          <kbd className="bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-[10px] text-slate-400">
+            ESC
+          </kbd>
         </div>
 
-        {/* Results List */}
+        {/* Command List Viewport */}
         <div className="max-h-80 overflow-y-auto p-2 space-y-1">
-          {filtered.length > 0 ? (
-            filtered.map((item, idx) => (
-              <div
-                key={idx}
-                onClick={item.action}
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-cyan-500/10 hover:border-cyan-500/30 border border-transparent cursor-pointer transition-all"
-              >
-                <span className="text-xs font-semibold text-slate-200">{item.title}</span>
-                <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
-                  {item.cat}
-                </span>
-              </div>
-            ))
+          {filtered.length === 0 ? (
+            <div className="p-6 text-center text-slate-500 text-xs">No matching system commands found.</div>
           ) : (
-            <div className="p-4 text-xs font-mono text-slate-500 text-center">No matching command found.</div>
+            filtered.map((cmd) => (
+              <button
+                key={cmd.id}
+                onClick={() => handleSelect(cmd)}
+                className="w-full p-3 rounded-xl hover:bg-slate-800/80 flex items-center justify-between text-left transition-colors group cursor-pointer"
+              >
+                <div className="space-y-0.5 truncate">
+                  <div className="font-semibold text-slate-100 group-hover:text-sky-300 flex items-center gap-2 truncate">
+                    <span>{cmd.title}</span>
+                  </div>
+                  {cmd.description && (
+                    <div className="text-[10px] text-slate-400 truncate">{cmd.description}</div>
+                  )}
+                </div>
+
+                <div className="flex items-center space-x-2 shrink-0 ml-3">
+                  {cmd.shortcut && (
+                    <kbd className="bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 text-[10px] text-slate-400">
+                      {cmd.shortcut}
+                    </kbd>
+                  )}
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">
+                    {cmd.category}
+                  </span>
+                </div>
+              </button>
+            ))
           )}
+        </div>
+
+        {/* Footer */}
+        <div className="h-8 bg-[#0a0e17] border-t border-slate-800/80 px-4 flex items-center justify-between text-[10px] text-slate-500">
+          <span>Unified Command Engine</span>
+          <span>Press Enter ↵ to Execute</span>
         </div>
       </div>
     </div>
