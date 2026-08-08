@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useCognitionStore } from '../stores/cognitionStore';
 import { useOperatingStore } from '../stores/operatingStore';
 import { MissionIntelligenceModal } from '../knowledge/MissionIntelligenceModal';
+import { EnterpriseCommandDeck } from '../enterprise/EnterpriseCommandDeck';
 
 export function OperationsCenterHome() {
   const setWorkspaceMode = useCognitionStore((s) => s.setWorkspaceMode);
@@ -11,7 +12,7 @@ export function OperationsCenterHome() {
   const confidence = useCognitionStore((s) => s.confidence);
   const sensorTrust = useCognitionStore((s) => s.sensorTrust);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'queue' | 'incidents' | 'topology' | 'analytics'>('overview');
+  const [activeTab, setActiveTab] = useState<'cockpit' | 'overview' | 'queue' | 'incidents' | 'topology' | 'analytics'>('cockpit');
   const [intelModalOpen, setIntelModalOpen] = useState(false);
 
   const operating = useOperatingStore((s) => s.operating);
@@ -73,38 +74,42 @@ export function OperationsCenterHome() {
           </h1>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons & View Mode Tabs */}
         <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-1 bg-slate-900/80 p-1 rounded-lg border border-slate-800">
+            <button
+              onClick={() => setActiveTab('cockpit')}
+              className={`px-3 py-1.5 rounded text-xs font-mono font-medium transition-all ${
+                activeTab === 'cockpit' ? 'bg-sky-600 text-white font-bold shadow' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              🛸 Live Cockpit
+            </button>
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-3 py-1.5 rounded text-xs font-mono font-medium transition-all ${
+                activeTab === 'overview' ? 'bg-slate-800 text-white font-bold' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              📊 Overview
+            </button>
+          </div>
+
           <button
             onClick={() => setIntelModalOpen(true)}
-            className="flex items-center space-x-2 rounded-lg bg-purple-600 hover:bg-purple-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-purple-600/20 transition-all"
+            className="flex items-center space-x-2 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 px-3.5 py-1.5 text-xs font-semibold text-purple-200 shadow-md transition-all"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            <span>AI Knowledge Copilot</span>
-          </button>
-          <button
-            onClick={() => setWorkspaceMode('command_globe')}
-            className="flex items-center space-x-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-cyan-600/20 transition-all"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2h1.5a2.5 2.5 0 002.5-2.5V14M12 21a9 9 0 100-18 9 9 0 000 18z" />
-            </svg>
-            <span>Launch 3D Command Globe</span>
-          </button>
-          <button
-            onClick={() => setWorkspaceMode('mission_studio')}
-            className="flex items-center space-x-2 rounded-lg bg-slate-800 hover:bg-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 border border-slate-700 transition-all"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-            <span>Node Mission Studio</span>
+            <span>AI Copilot</span>
           </button>
         </div>
       </div>
 
+      {activeTab === 'cockpit' ? (
+        <div className="h-[calc(100vh-180px)] rounded-xl border border-slate-800 overflow-hidden">
+          <EnterpriseCommandDeck />
+        </div>
+      ) : (
+      <>
       {/* Metric Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="rounded-xl border border-slate-800/80 bg-slate-900/60 p-4 backdrop-blur-md">
@@ -312,6 +317,8 @@ export function OperationsCenterHome() {
         </div>
 
       </div>
+      </>
+      )}
 
       {/* Mission Intelligence NL Copilot Modal */}
       <MissionIntelligenceModal isOpen={intelModalOpen} onClose={() => setIntelModalOpen(false)} />
