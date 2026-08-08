@@ -1,6 +1,7 @@
-import { MapNativeShell } from './shell/MapNativeShell';
+import React from 'react';
+import { WorkspaceLayout } from './components/layouts/WorkspaceLayout';
 
-/** Map-native operational consciousness — planet is the primary cognition interface. */
+/** Production-Grade Scalable Real-Time Mission Control Workspace. */
 export default function App() {
-  return <MapNativeShell />;
+  return <WorkspaceLayout />;
 }
