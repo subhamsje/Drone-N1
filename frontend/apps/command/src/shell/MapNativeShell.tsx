@@ -25,6 +25,7 @@ import { CommandPaletteModal } from './CommandPaletteModal';
 import { IncidentManagerModal } from '../incidents/IncidentManagerModal';
 import { AiDebriefCard } from '../mission_replay/AiDebriefCard';
 import { FaultInjectionDrawer } from '../adversarial/FaultInjectionDrawer';
+import { CounterfactualTwinWorkbench } from '../twin_workbench/CounterfactualTwinWorkbench';
 
 export function MapNativeShell() {
   useOperatingFabric();
@@ -51,8 +52,11 @@ export function MapNativeShell() {
         {/* Node-Based Mission Studio View */}
         {workspaceMode === 'mission_studio' && <NodeMissionGraph />}
 
-        {/* 3D Command Globe & Twin Viewports */}
-        {(workspaceMode === 'command_globe' || workspaceMode === 'twin_workbench') && (
+        {/* 3D Counterfactual Digital Twin Workbench View */}
+        {workspaceMode === 'twin_workbench' && <CounterfactualTwinWorkbench />}
+
+        {/* 3D Command Globe Viewport */}
+        {workspaceMode === 'command_globe' && (
           <>
             <AltariaCommandCenter collapsed={!cmdOpen} onToggle={() => setCmdOpen((o) => !o)} />
 
