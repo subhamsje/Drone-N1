@@ -10,6 +10,7 @@ import { NodeGraph } from '../../features/mission-studio/NodeGraph';
 import { OpsDashboard } from '../../features/ops-center/OpsDashboard';
 import { LogConsole } from '../composites/LogConsole';
 import { EventTimelineView } from '../../features/timeline/EventTimelineView';
+import { OperationalInvariantsInspector } from '../../features/intelligence/OperationalInvariantsInspector';
 import { CommandPaletteModal } from '../../shell/CommandPaletteModal';
 
 export const WorkspaceLayout: React.FC = () => {
@@ -42,6 +43,8 @@ export const WorkspaceLayout: React.FC = () => {
         return <LogConsole />;
       case 'timeline':
         return <EventTimelineView />;
+      case 'invariants':
+        return <OperationalInvariantsInspector />;
       default:
         return (
           <div className="h-full w-full flex items-center justify-center font-mono text-xs text-slate-500">

@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { Globe2, Video, Box, GitMerge, LayoutDashboard, Gauge, Terminal, Clock } from 'lucide-react';
+import { Globe2, Video, Box, GitMerge, LayoutDashboard, Gauge, Terminal, Clock, ShieldCheck } from 'lucide-react';
 
 export interface TabMeta {
   id: string;
@@ -16,4 +16,5 @@ export const TAB_REGISTRY: Record<string, TabMeta> = {
   pfd: { id: 'pfd', title: 'Primary Flight Display', icon: Gauge },
   telemetry: { id: 'telemetry', title: '50Hz MAVLink Console', icon: Terminal },
   timeline: { id: 'timeline', title: 'Cognitive Event Timeline', icon: Clock },
+  invariants: { id: 'invariants', title: 'Safety Invariants & Autonomy', icon: ShieldCheck },
 };
