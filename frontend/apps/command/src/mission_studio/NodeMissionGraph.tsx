@@ -15,10 +15,11 @@ interface MissionNode {
 import { CorridorSculptor } from './CorridorSculptor';
 import { SurveyGridGenerator } from './SurveyGridGenerator';
 import { BatteryFeasibilitySimulator } from './BatteryFeasibilitySimulator';
+import { SwarmFormationBuilder } from './SwarmFormationBuilder';
 
 export function NodeMissionGraph() {
   const setWorkspaceMode = useCognitionStore((s) => s.setWorkspaceMode);
-  const [subView, setSubView] = useState<'blueprint' | 'corridor' | 'survey' | 'energy'>('blueprint');
+  const [subView, setSubView] = useState<'blueprint' | 'corridor' | 'survey' | 'energy' | 'swarm'>('blueprint');
 
   const [nodes, setNodes] = useState<MissionNode[]>([
     { id: 'n1', type: 'TAKEOFF', label: '01. Autonomous Takeoff', params: 'ALT: 50m • RATE: 2.5m/s', x: 40, y: 140 },
@@ -139,6 +140,14 @@ export function NodeMissionGraph() {
             >
               🔋 Energy & PONR
             </button>
+            <button
+              onClick={() => setSubView('swarm')}
+              className={`px-3 py-1 rounded text-xs font-mono transition-all ${
+                subView === 'swarm' ? 'bg-sky-600/30 text-sky-300 font-bold border border-sky-500/40' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              🐝 Swarm Formation
+            </button>
           </div>
         </div>
 
@@ -172,7 +181,9 @@ export function NodeMissionGraph() {
         </div>
       </div>
 
-      {subView === 'energy' ? (
+      {subView === 'swarm' ? (
+        <SwarmFormationBuilder />
+      ) : subView === 'energy' ? (
         <BatteryFeasibilitySimulator />
       ) : subView === 'survey' ? (
         <SurveyGridGenerator />
