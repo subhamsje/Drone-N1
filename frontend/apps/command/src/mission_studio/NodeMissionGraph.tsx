@@ -13,10 +13,11 @@ interface MissionNode {
 }
 
 import { CorridorSculptor } from './CorridorSculptor';
+import { SurveyGridGenerator } from './SurveyGridGenerator';
 
 export function NodeMissionGraph() {
   const setWorkspaceMode = useCognitionStore((s) => s.setWorkspaceMode);
-  const [subView, setSubView] = useState<'blueprint' | 'corridor'>('blueprint');
+  const [subView, setSubView] = useState<'blueprint' | 'corridor' | 'survey'>('blueprint');
 
   const [nodes, setNodes] = useState<MissionNode[]>([
     { id: 'n1', type: 'TAKEOFF', label: '01. Autonomous Takeoff', params: 'ALT: 50m • RATE: 2.5m/s', x: 40, y: 140 },
@@ -119,7 +120,15 @@ export function NodeMissionGraph() {
                 subView === 'corridor' ? 'bg-cyan-600/30 text-cyan-300 font-bold border border-cyan-500/40' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              🌐 3D Corridor Sculptor
+              🌐 3D Corridor
+            </button>
+            <button
+              onClick={() => setSubView('survey')}
+              className={`px-3 py-1 rounded text-xs font-mono transition-all ${
+                subView === 'survey' ? 'bg-emerald-600/30 text-emerald-300 font-bold border border-emerald-500/40' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              📸 Survey Grid
             </button>
           </div>
         </div>
@@ -154,7 +163,9 @@ export function NodeMissionGraph() {
         </div>
       </div>
 
-      {subView === 'corridor' ? (
+      {subView === 'survey' ? (
+        <SurveyGridGenerator />
+      ) : subView === 'corridor' ? (
         <CorridorSculptor />
       ) : (
         <div className="flex-1 flex gap-4 overflow-hidden">
