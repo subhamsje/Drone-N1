@@ -14,6 +14,11 @@ export function OperationsCenterHome() {
 
   const [activeTab, setActiveTab] = useState<'cockpit' | 'overview' | 'queue' | 'incidents' | 'topology' | 'analytics'>('cockpit');
   const [intelModalOpen, setIntelModalOpen] = useState(false);
+  const [approvedList, setApprovedList] = useState<Record<string, boolean>>({});
+
+  const toggleApprove = (id: string) => {
+    setApprovedList(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const operating = useOperatingStore((s) => s.operating);
 
@@ -300,17 +305,27 @@ export function OperationsCenterHome() {
               Enterprise Approval Pipeline
             </h3>
             <div className="space-y-3">
-              {pendingApprovals.map((app) => (
-                <div key={app.id} className="p-3 rounded-lg bg-slate-950/60 border border-slate-800 flex items-center justify-between">
-                  <div>
-                    <div className="text-xs font-semibold text-slate-200">{app.name}</div>
-                    <div className="text-[10px] font-mono text-slate-400 mt-0.5">Pilot: {app.pilot} | Risk: {app.riskScore}</div>
+              {pendingApprovals.map((app) => {
+                const isApproved = approvedList[app.id];
+                return (
+                  <div key={app.id} className="p-3 rounded-lg bg-slate-950/60 border border-slate-800 flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-semibold text-slate-200">{app.name}</div>
+                      <div className="text-[10px] font-mono text-slate-400 mt-0.5">Pilot: {app.pilot} | Risk: {app.riskScore}</div>
+                    </div>
+                    <button 
+                      onClick={() => toggleApprove(app.id)}
+                      className={`text-[10px] font-mono px-2.5 py-1 rounded font-semibold transition-all ${
+                        isApproved
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                          : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20'
+                      }`}
+                    >
+                      {isApproved ? 'APPROVED ✓' : 'APPROVE'}
+                    </button>
                   </div>
-                  <button className="text-[10px] font-mono px-2 py-1 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20">
-                    APPROVE
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
