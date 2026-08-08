@@ -62,22 +62,22 @@ export const PrimaryFlightDisplay: React.FC = () => {
 
         {/* Center Aircraft Reticle (Fixed crosshairs) */}
         <div className="relative z-10 flex items-center justify-center pointer-events-none">
-          <div className="w-8 h-0.5 bg-yellow-400 shadow-md shadow-yellow-400/80" />
-          <div className="w-2.5 h-2.5 rounded-full border-2 border-yellow-400 mx-1" />
-          <div className="w-8 h-0.5 bg-yellow-400 shadow-md shadow-yellow-400/80" />
+          <div className="w-8 h-0.5 bg-sky-400 shadow-md shadow-sky-400/50" />
+          <div className="w-2.5 h-2.5 rounded-full border border-white mx-1 bg-sky-500/30" />
+          <div className="w-8 h-0.5 bg-sky-400 shadow-md shadow-sky-400/50" />
         </div>
 
         {/* Left Airspeed Tape */}
-        <div className="absolute left-1.5 top-2 bottom-2 w-10 bg-black/60 border border-slate-800/80 rounded p-1 flex flex-col justify-between text-[10px] text-slate-300 font-bold z-10">
-          <div className="text-[8px] text-slate-500 uppercase">SPD</div>
-          <div className="text-sky-400 text-xs font-extrabold">{airspeed}</div>
+        <div className="absolute left-1.5 top-2 bottom-2 w-10 bg-slate-950/80 border border-slate-800/80 rounded p-1 flex flex-col justify-between text-[10px] text-slate-300 font-bold z-10">
+          <div className="text-[8px] text-slate-500 uppercase font-mono">SPD</div>
+          <div className="text-sky-300 text-xs font-extrabold">{airspeed}</div>
           <div className="text-[8px] text-slate-500">m/s</div>
         </div>
 
         {/* Right Altitude Tape */}
-        <div className="absolute right-1.5 top-2 bottom-2 w-11 bg-black/60 border border-slate-800/80 rounded p-1 flex flex-col justify-between text-[10px] text-slate-300 font-bold text-right z-10">
-          <div className="text-[8px] text-slate-500 uppercase">ALT</div>
-          <div className="text-emerald-400 text-xs font-extrabold">{altitude}</div>
+        <div className="absolute right-1.5 top-2 bottom-2 w-11 bg-slate-950/80 border border-slate-800/80 rounded p-1 flex flex-col justify-between text-[10px] text-slate-300 font-bold text-right z-10">
+          <div className="text-[8px] text-slate-500 uppercase font-mono">ALT</div>
+          <div className="text-emerald-300 text-xs font-extrabold">{altitude}</div>
           <div className="text-[8px] text-slate-500">m AGL</div>
         </div>
       </div>
