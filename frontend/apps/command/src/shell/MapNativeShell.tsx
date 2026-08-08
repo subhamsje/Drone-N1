@@ -27,10 +27,15 @@ import { AiDebriefCard } from '../mission_replay/AiDebriefCard';
 import { FaultInjectionDrawer } from '../adversarial/FaultInjectionDrawer';
 import { CounterfactualTwinWorkbench } from '../twin_workbench/CounterfactualTwinWorkbench';
 
+import { OpticShaderToolbar } from '../hud/OpticShaderToolbar';
+import { MissionReplayScrubber } from '../mission_replay/MissionReplayScrubber';
+import { SwarmTopologyModal } from '../swarm/SwarmTopologyModal';
+
 export function MapNativeShell() {
   useOperatingFabric();
   useTacticalAudio();
   const [cmdOpen, setCmdOpen] = useState(true);
+  const [swarmModalOpen, setSwarmModalOpen] = useState(false);
   const viewMode = useCognitionStore((s) => s.viewMode);
   const workspaceMode = useCognitionStore((s) => s.workspaceMode);
   const focusedUavId = useCognitionStore((s) => s.focusedUavId);
@@ -68,6 +73,7 @@ export function MapNativeShell() {
                       <PlanetaryCognitionGlobe focusId={focusedUavId} />
                     </RenderErrorBoundary>
                     <TacticalArHud />
+                    <OpticShaderToolbar />
                     {!showTwin && <MissionCommandRibbon />}
                     <DroneConnectionCenter />
                   </div>
@@ -85,6 +91,7 @@ export function MapNativeShell() {
             </div>
 
             <FpvVisionHud />
+            <MissionReplayScrubber />
             <FaultInjectionDrawer />
           </>
         )}
@@ -102,6 +109,7 @@ export function MapNativeShell() {
       <CommandPaletteModal />
       <IncidentManagerModal />
       <AiDebriefCard />
+      <SwarmTopologyModal isOpen={swarmModalOpen} onClose={() => setSwarmModalOpen(false)} />
     </div>
   );
 }

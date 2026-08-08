@@ -1,6 +1,7 @@
 import React from 'react';
 import { useCognitionStore } from '../stores/cognitionStore';
 import { MultiDomainVehicleSelector } from '../robotics/MultiDomainVehicleSelector';
+import { AudioVisualizerWidget } from '../audio/AudioVisualizerWidget';
 
 export function WorkspaceNavigationRail() {
   const workspaceMode = useCognitionStore((s) => s.workspaceMode);
@@ -49,8 +50,9 @@ export function WorkspaceNavigationRail() {
         </nav>
       </div>
 
-      {/* Right Tools: Network Failover, Multi-Domain Selector & Ctrl+K Palette */}
+      {/* Right Tools: Audio Visualizer, Network Failover, Multi-Domain Selector & Ctrl+K Palette */}
       <div className="flex items-center space-x-3">
+        <AudioVisualizerWidget />
         <div className="hidden lg:flex items-center space-x-1.5 bg-slate-900/90 border border-emerald-500/30 px-2.5 py-1 rounded-xl text-xs font-mono text-emerald-400">
           <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
           <span className="font-semibold text-[11px]">5G PRIVATE</span>
