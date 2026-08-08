@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Grid } from '@react-three/drei';
-import { Wind, Radio, Zap, Activity, Play, RotateCcw, AlertTriangle, ShieldCheck, Plane, Box } from 'lucide-react';
+import { Wind, Radio, Zap, Activity, Play, RotateCcw, AlertTriangle, ShieldCheck, Plane, Box, Layers, Plus } from 'lucide-react';
 import { tacticalAudio } from '../audio/tacticalAudio';
 import { RealisticTacticalDrone } from './RealisticTacticalDrone';
 import { HybridVtolFixedWing } from './HybridVtolFixedWing';
+import { HeavyHexacopter } from './HeavyHexacopter';
+import { OctocopterX8 } from './OctocopterX8';
+import { DroneIntegrationWizardModal } from './DroneIntegrationWizardModal';
 
 export function CounterfactualTwinWorkbench() {
-  const [airframeType, setAirframeType] = useState<'VTOL_PUSHER' | 'QUAD_ISR'>('VTOL_PUSHER');
+  const [airframeType, setAirframeType] = useState<'VTOL_PUSHER' | 'QUAD_ISR' | 'HEXA_HEAVY' | 'OCTO_X8'>('VTOL_PUSHER');
   const [flightPhase, setFlightPhase] = useState<'FORWARD_CRUISE' | 'HOVER_TAKEOFF' | 'TRANSITION'>('FORWARD_CRUISE');
+  const [wizardOpen, setWizardOpen] = useState<boolean>(false);
   const [windMps, setWindMps] = useState(6.2);
   const [rfNoiseDbm, setRfNoiseDbm] = useState(-78.0);
   const [motorDegradationPct, setMotorDegradationPct] = useState(5.0);
@@ -55,43 +59,73 @@ export function CounterfactualTwinWorkbench() {
             4K DIGITAL TWIN v10.0
           </span>
           <h2 className="text-xl font-bold text-white tracking-tight">
-            3D Counterfactual Physics Sandbox & EKF2 Inspector
+            Universal 3D Counterfactual Physics Sandbox & Airframe Suite
           </h2>
           <span className="text-xs font-mono text-slate-500">STANAG 4586 Isolated Sim</span>
         </div>
 
         <div className="flex items-center space-x-3">
-          {/* Airframe Profile Selector Switcher */}
+          {/* Airframe Quick Selector Tabs */}
           <div className="flex items-center space-x-1 bg-slate-900/80 p-0.5 rounded-lg border border-slate-800 text-xs font-mono">
             <button
               onClick={() => setAirframeType('VTOL_PUSHER')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-all ${
                 airframeType === 'VTOL_PUSHER'
                   ? 'bg-slate-800 text-sky-400 font-bold border border-slate-700/60 shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Plane className="w-3.5 h-3.5" />
-              <span>Hybrid VTOL Pusher (Active)</span>
+              <Plane className="w-3 h-3" />
+              <span>Hybrid VTOL</span>
             </button>
             <button
               onClick={() => setAirframeType('QUAD_ISR')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-all ${
                 airframeType === 'QUAD_ISR'
                   ? 'bg-slate-800 text-sky-400 font-bold border border-slate-700/60 shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Box className="w-3.5 h-3.5" />
-              <span>Tactical Quad-X</span>
+              <Box className="w-3 h-3" />
+              <span>Tactical Quad</span>
+            </button>
+            <button
+              onClick={() => setAirframeType('HEXA_HEAVY')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-all ${
+                airframeType === 'HEXA_HEAVY'
+                  ? 'bg-slate-800 text-sky-400 font-bold border border-slate-700/60 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Layers className="w-3 h-3" />
+              <span>Hexa Heavy</span>
+            </button>
+            <button
+              onClick={() => setAirframeType('OCTO_X8')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-all ${
+                airframeType === 'OCTO_X8'
+                  ? 'bg-slate-800 text-sky-400 font-bold border border-slate-700/60 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Zap className="w-3 h-3" />
+              <span>Octo X8</span>
             </button>
           </div>
+
+          {/* Integrate New Drone Button */}
+          <button
+            onClick={() => setWizardOpen(true)}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 text-xs font-mono font-bold transition-all shadow-sm"
+          >
+            <Plus className="w-3.5 h-3.5" /> Integrate New Drone
+          </button>
 
           <button
             onClick={handleReset}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-300 border border-slate-700"
           >
-            <RotateCcw className="w-3.5 h-3.5" /> Reset Defaults
+            <RotateCcw className="w-3.5 h-3.5" /> Reset
           </button>
           <button
             onClick={handleRunSim}
@@ -99,7 +133,7 @@ export function CounterfactualTwinWorkbench() {
             className="flex items-center gap-1.5 px-4 py-1.5 rounded bg-sky-600 hover:bg-sky-500 text-xs font-mono font-semibold text-white shadow-lg shadow-sky-600/20 transition-all disabled:opacity-50"
           >
             <Play className="w-3.5 h-3.5" />
-            <span>{simulating ? 'Recomputing MPC...' : 'Simulate Counterfactual Physics'}</span>
+            <span>{simulating ? 'Computing MPC...' : 'Run Simulation'}</span>
           </button>
         </div>
       </div>
@@ -113,7 +147,13 @@ export function CounterfactualTwinWorkbench() {
             <div className="flex justify-between items-center gap-4">
               <span className="text-slate-400">ACTIVE AIRFRAME:</span>
               <span className="text-sky-400 font-bold">
-                {airframeType === 'VTOL_PUSHER' ? 'VTOL-99 LONG-RANGE PUSHER' : 'ALTARIA-ALPHA QUAD-X'}
+                {airframeType === 'VTOL_PUSHER'
+                  ? 'VTOL-99 LONG-RANGE PUSHER'
+                  : airframeType === 'QUAD_ISR'
+                  ? 'ALTARIA-ALPHA QUAD-X'
+                  : airframeType === 'HEXA_HEAVY'
+                  ? 'HEXA-CARRIER H60 HEAVY'
+                  : 'OCTO-X8 COAXIAL DEFENSE'}
               </span>
             </div>
             <div className="flex justify-between items-center gap-4">
@@ -154,7 +194,7 @@ export function CounterfactualTwinWorkbench() {
             />
 
             {/* Dynamic Rendering of Selected 4K Drone Model */}
-            {airframeType === 'VTOL_PUSHER' ? (
+            {airframeType === 'VTOL_PUSHER' && (
               <HybridVtolFixedWing
                 windMps={windMps}
                 motorDegradationPct={motorDegradationPct}
@@ -162,8 +202,25 @@ export function CounterfactualTwinWorkbench() {
                 uncertaintyRadius={uncertaintyRadius}
                 riskStatus={riskStatus}
               />
-            ) : (
+            )}
+            {airframeType === 'QUAD_ISR' && (
               <RealisticTacticalDrone
+                windMps={windMps}
+                motorDegradationPct={motorDegradationPct}
+                uncertaintyRadius={uncertaintyRadius}
+                riskStatus={riskStatus}
+              />
+            )}
+            {airframeType === 'HEXA_HEAVY' && (
+              <HeavyHexacopter
+                windMps={windMps}
+                motorDegradationPct={motorDegradationPct}
+                uncertaintyRadius={uncertaintyRadius}
+                riskStatus={riskStatus}
+              />
+            )}
+            {airframeType === 'OCTO_X8' && (
+              <OctocopterX8
                 windMps={windMps}
                 motorDegradationPct={motorDegradationPct}
                 uncertaintyRadius={uncertaintyRadius}
@@ -238,7 +295,7 @@ export function CounterfactualTwinWorkbench() {
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-mono">
                 <span className="text-slate-300 flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-amber-400" /> Motor 3 Bearing Wear
+                  <Zap className="w-3.5 h-3.5 text-amber-400" /> Motor Bearing Wear
                 </span>
                 <span className="text-amber-400 font-bold">{motorDegradationPct}%</span>
               </div>
@@ -308,6 +365,13 @@ export function CounterfactualTwinWorkbench() {
           </div>
         </div>
       </div>
+
+      {/* Hardware Drone Integration Wizard Modal */}
+      <DroneIntegrationWizardModal
+        isOpen={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        onSelectAirframe={(id) => setAirframeType(id)}
+      />
     </div>
   );
 }

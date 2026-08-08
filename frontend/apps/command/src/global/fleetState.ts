@@ -14,6 +14,7 @@ export interface FleetState {
   setFlightMode: (mode: FlightMode) => Promise<void>;
   toggleArm: () => Promise<void>;
   setGimbalPitch: (pitch: number) => Promise<void>;
+  addFleetUnit: (unit: Partial<FleetUnit> & { id: string }) => void;
 }
 
 export const useFleetStore = create<FleetState>((set, get) => ({
@@ -47,5 +48,19 @@ export const useFleetStore = create<FleetState>((set, get) => ({
     set({ gimbalPitchDeg: pitch });
     const { focusedUavId } = get();
     await FleetApiService.setGimbalPitch(focusedUavId, pitch);
+  },
+
+  addFleetUnit: (unit) => {
+    const defaultUnit: FleetUnit = {
+      id: unit.id,
+      role: unit.role || 'WINGMAN',
+      battery: unit.battery || 100,
+      voltage: unit.voltage || 16.8,
+      status: 'READY',
+      position: unit.position || { lat: 30.2672, lon: -97.7431, alt_m: 0.0 },
+    };
+    set((state) => ({
+      fleetUnits: [...state.fleetUnits.filter((u) => u.id !== unit.id), defaultUnit],
+    }));
   },
 }));
