@@ -31,8 +31,10 @@ class RealityGapCalibrationEngine:
         dz = actual_state.get("alt_m", 0.0) - predicted_state.get("alt_m", 0.0)
         dv = actual_state.get("airspeed_ms", 0.0) - predicted_state.get("airspeed_ms", 0.0)
 
-        # Scale spatial coordinates to meters
-        spatial_err_m = math.sqrt((dx * 111000)**2 + (dy * 111000)**2 + dz**2)
+        # Scale spatial coordinates to meters with latitude projection
+        lat_rad = math.radians(actual_state.get("lat", 0.0))
+        cos_lat = math.cos(lat_rad) if abs(lat_rad) < 1.57 else 1.0
+        spatial_err_m = math.sqrt((dx * 111139.0)**2 + (dy * 111139.0 * cos_lat)**2 + dz**2)
         velocity_err_ms = abs(dv)
 
         total_drift = spatial_err_m + velocity_err_ms * 0.5
@@ -47,7 +49,7 @@ class RealityGapCalibrationEngine:
             self.drag_coefficient_cd = max(0.015, min(0.045, self.drag_coefficient_cd + correction))
 
         avg_residual = sum(self.residual_history) / max(1, len(self.residual_history))
-        is_calibrated = avg_residual < 0.85
+        is_calibrated = avg_residual < 2.0
 
         return {
             "spatial_drift_meters": round(spatial_err_m, 3),

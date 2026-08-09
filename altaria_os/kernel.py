@@ -83,6 +83,7 @@ from engines.hardware_cognition import HardwareCognitionEngine
 from backend.federation_global.airspace_coordination import PlanetaryAirspaceCoordination
 from backend.operations.operational_economics import OperationalEconomicsPlatform
 from altaria_os.certification.operational_autonomy import CertifiableOperationalAutonomyRuntime
+from backend.analytics.edge_offloading import edge_offloading_engine, OffloadingTask
 
 logger = logging.getLogger("os.kernel")
 
@@ -526,6 +527,20 @@ class CognitiveOSKernel:
             snapshot.get("hardware_cognition"),
         ).to_dict()
         snapshot["cognition_fabric"] = self.cognition_fabric.get_fabric_status()
+
+        # Digital Twin Edge Computing Offloading Optimization
+        offload_task = OffloadingTask(
+            task_id=f"vision-perception-{self.uav_id}",
+            data_size_bytes=1024 * 512, # 512 KB visual state
+            cpu_cycles_per_bit=1200,
+            max_latency_deadline_s=0.25,
+            priority="HIGH",
+        )
+        bat_pct = float(snapshot.get("physics", {}).get("battery", 100.0))
+        dist_mec = float(snapshot.get("airspace", {}).get("altitude_m", 25.0) + 150.0)
+        snapshot["edge_offloading"] = edge_offloading_engine.optimize_task_offloading(
+            offload_task, dist_mec, bat_pct, snapshot.get("twin_physics")
+        ).to_dict()
 
         # Autonomy overrides — gated by deterministic envelope
         snapshot["autonomy_mode"] = self.autonomy.mode.value

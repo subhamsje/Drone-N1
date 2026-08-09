@@ -11,3 +11,5 @@ dist/
 venv/
 .env
 tsconfig.tsbuildinfo
+*.jsonl
+.pytest_cache/

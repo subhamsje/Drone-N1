@@ -1,5 +1,8 @@
 """Analytics Bounded Context Package."""
 
-from backend.analytics.mission_economics import MissionEconomicsCalculator
+from backend.analytics.mission_economics import MissionEconomicsEngine
 
-__all__ = ["MissionEconomicsCalculator"]
+# Alias for backwards compatibility
+MissionEconomicsCalculator = MissionEconomicsEngine
+
+__all__ = ["MissionEconomicsEngine", "MissionEconomicsCalculator"]

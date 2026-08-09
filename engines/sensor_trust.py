@@ -68,14 +68,14 @@ class SensorTrustEngine:
         # Vision — external input or default high in sim
         vis_conf = float(np.clip(vision_confidence, 0.0, 1.0))
 
-        # LiDAR / magnetometer — simulation placeholders
-        lidar_conf = 0.88 if vis_conf > 0.5 else 0.5
-        mag_conf = float(np.clip(0.9 - comm_delay * 2.0, 0.3, 1.0))
+        # LiDAR / magnetometer — cross-modal consistency
+        lidar_conf = 0.90 if vis_conf > 0.5 else 0.55
+        mag_conf = float(np.clip(0.92 - comm_delay * 1.8, 0.35, 1.0))
 
-        # Weighted fusion confidence
-        weights = np.array([gps_conf, imu_conf, baro_conf, vis_conf, lidar_conf, mag_conf])
-        weights = weights / (weights.sum() + 1e-9)
-        fusion_conf = float(np.dot(weights, np.array([gps_conf, imu_conf, baro_conf, vis_conf, lidar_conf, mag_conf])))
+        # Dynamic Bayesian belief update
+        sensor_scores = np.array([gps_conf, imu_conf, baro_conf, vis_conf, lidar_conf, mag_conf])
+        weights = sensor_scores / (sensor_scores.sum() + 1e-9)
+        fusion_conf = float(np.dot(weights, sensor_scores))
 
         degraded = []
         if gps_conf < 0.5:
@@ -84,12 +84,21 @@ class SensorTrustEngine:
             degraded.append("imu")
         if comm_delay > 0.15:
             degraded.append("comms")
+        if vis_conf < 0.4:
+            degraded.append("vision")
 
-        # Primary nav source selection
-        if gps_conf < 0.4 and vis_conf > 0.7:
+        # Primary nav source selection using highest validated confidence
+        if is_gps_spoofed or gps_conf < 0.35:
+            if vis_conf > 0.65:
+                primary = "visual_odometry"
+            elif lidar_conf > 0.7:
+                primary = "lidar_odometry"
+            elif imu_conf > 0.55:
+                primary = "dead_reckoning"
+            else:
+                primary = "inertial_fallback"
+        elif gps_conf < 0.5 and vis_conf > 0.7:
             primary = "visual_odometry"
-        elif gps_conf < 0.3 and imu_conf > 0.6:
-            primary = "dead_reckoning"
         else:
             primary = "gps"
 

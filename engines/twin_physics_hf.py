@@ -60,24 +60,33 @@ class HighFidelityTwinPhysics:
         self._vibration_modes.append(vib)
         vib_prop = float(np.mean(list(self._vibration_modes)) if self._vibration_modes else 0)
 
-        # Thermal from motor stress
-        thrust_mean = np.mean(motor_thrusts) if motor_thrusts else 5.0
-        self._thermal_state = 0.95 * self._thermal_state + 0.05 * (25 + thrust_mean * 2)
-        thermal_inst = float(np.clip((self._thermal_state - 60) / 40.0, 0, 1))
+        # Thermal from motor stress with Joule heating model
+        thrust_mean = float(np.mean(motor_thrusts)) if motor_thrusts else 5.0
+        joule_heating = 0.05 * (thrust_mean ** 1.8)
+        self._thermal_state = 0.94 * self._thermal_state + 0.06 * (22.0 + joule_heating * 12.0)
+        thermal_inst = float(np.clip((self._thermal_state - 55.0) / 45.0, 0.0, 1.0))
 
-        # Thrust imbalance
+        # Dynamic Pressure (q = 0.5 * rho * v^2) with ISA air density lapse
+        rho_air = 1.225 * np.exp(-alt / 8500.0)
+        dynamic_pressure_pa = float(0.5 * rho_air * (vel_est ** 2))
+
+        # Structural Stress Tensor (Bending moment + Aerodynamic aeroelastic load)
+        structural_stress_mpa = float((thrust_mean * 9.81 * 0.35) / 0.0012 + dynamic_pressure_pa * 0.04)
+
+        # Thrust imbalance & motor degradation metric
         if motor_thrusts and len(motor_thrusts) >= 4:
             thrust_deg = float(np.std(motor_thrusts) / (np.mean(motor_thrusts) + 1e-6))
         else:
             thrust_deg = risk * 0.3
 
-        # Power instability from battery ROC proxy
-        power_inst = float(physics.get("battery", 100))
-        if power_inst < 30:
+        # Power instability from battery state & dynamic internal resistance (Ri)
+        battery_pct = float(physics.get("battery", 100.0))
+        ri_ohms = 0.015 + 0.035 * max(0.0, (30.0 - battery_pct) / 30.0)
+        if battery_pct < 30.0:
             thrust_deg = min(1.0, thrust_deg + 0.2)
 
-        # Instability horizon
-        instability_rate = turb * 0.4 + vib_prop * 0.3 + thrust_deg * 0.3 + thermal_inst * 0.2
+        # Instability horizon calculation
+        instability_rate = turb * 0.35 + vib_prop * 0.25 + thrust_deg * 0.25 + thermal_inst * 0.15
         horizon = max(3.0, 90.0 * (1.0 - instability_rate) * (alt / 10.0 + 0.1))
 
         forecast = TwinPhysicsForecast(
