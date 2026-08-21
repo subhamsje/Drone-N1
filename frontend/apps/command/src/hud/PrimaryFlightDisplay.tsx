@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Compass, Gauge, ArrowUp, Activity } from 'lucide-react';
+import { Compass, Gauge } from 'lucide-react';
 import { useCognitionStore } from '../stores/cognitionStore';
 
 export const PrimaryFlightDisplay: React.FC = () => {

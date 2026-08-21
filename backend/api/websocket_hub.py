@@ -42,6 +42,19 @@ class WebSocketHub:
         for ws in dead:
             self.disconnect(ws)
 
+    async def broadcast_bytes(self, channel: str, payload_bytes: Any):
+        """Zero-copy binary WebSocket broadcast for raw telemetry buffers."""
+        dead = []
+        for ws in self._clients:
+            subs = self._subscriptions.get(ws, set())
+            if channel in subs or "all" in subs:
+                try:
+                    await ws.send_bytes(payload_bytes)
+                except Exception:
+                    dead.append(ws)
+        for ws in dead:
+            self.disconnect(ws)
+
     async def broadcast_snapshot(self, snapshot: Dict[str, Any]):
         uav_id = snapshot.get("uav_id", "unknown")
         await self.broadcast(f"uav:{uav_id}", snapshot)
