@@ -1,0 +1,137 @@
+%% BioMed_Central_Bib_Style_v1.01
+
+\begin{thebibliography}{7}
+% BibTex style file: bmc-mathphys.bst (version 2.1), 2014-07-24
+\ifx \bisbn   \undefined \def \bisbn  #1{ISBN #1}\fi
+\ifx \binits  \undefined \def \binits#1{#1}\fi
+\ifx \bauthor  \undefined \def \bauthor#1{#1}\fi
+\ifx \batitle  \undefined \def \batitle#1{#1}\fi
+\ifx \bjtitle  \undefined \def \bjtitle#1{#1}\fi
+\ifx \bvolume  \undefined \def \bvolume#1{\textbf{#1}}\fi
+\ifx \byear  \undefined \def \byear#1{#1}\fi
+\ifx \bissue  \undefined \def \bissue#1{#1}\fi
+\ifx \bfpage  \undefined \def \bfpage#1{#1}\fi
+\ifx \blpage  \undefined \def \blpage #1{#1}\fi
+\ifx \burl  \undefined \def \burl#1{\textsf{#1}}\fi
+\ifx \doiurl  \undefined \def \doiurl#1{\url{https://doi.org/#1}}\fi
+\ifx \betal  \undefined \def \betal{\textit{et al.}}\fi
+\ifx \binstitute  \undefined \def \binstitute#1{#1}\fi
+\ifx \binstitutionaled  \undefined \def \binstitutionaled#1{#1}\fi
+\ifx \bctitle  \undefined \def \bctitle#1{#1}\fi
+\ifx \beditor  \undefined \def \beditor#1{#1}\fi
+\ifx \bpublisher  \undefined \def \bpublisher#1{#1}\fi
+\ifx \bbtitle  \undefined \def \bbtitle#1{#1}\fi
+\ifx \bedition  \undefined \def \bedition#1{#1}\fi
+\ifx \bseriesno  \undefined \def \bseriesno#1{#1}\fi
+\ifx \blocation  \undefined \def \blocation#1{#1}\fi
+\ifx \bsertitle  \undefined \def \bsertitle#1{#1}\fi
+\ifx \bsnm \undefined \def \bsnm#1{#1}\fi
+\ifx \bsuffix \undefined \def \bsuffix#1{#1}\fi
+\ifx \bparticle \undefined \def \bparticle#1{#1}\fi
+\ifx \barticle \undefined \def \barticle#1{#1}\fi
+\bibcommenthead
+\ifx \bconfdate \undefined \def \bconfdate #1{#1}\fi
+\ifx \botherref \undefined \def \botherref #1{#1}\fi
+\ifx \url \undefined \def \url#1{\textsf{#1}}\fi
+\ifx \bchapter \undefined \def \bchapter#1{#1}\fi
+\ifx \bbook \undefined \def \bbook#1{#1}\fi
+\ifx \bcomment \undefined \def \bcomment#1{#1}\fi
+\ifx \oauthor \undefined \def \oauthor#1{#1}\fi
+\ifx \citeauthoryear \undefined \def \citeauthoryear#1{#1}\fi
+\ifx \endbibitem  \undefined \def \endbibitem {}\fi
+\ifx \bconflocation  \undefined \def \bconflocation#1{#1}\fi
+\ifx \arxivurl  \undefined \def \arxivurl#1{\textsf{#1}}\fi
+\csname PreBibitemsHook\endcsname
+
+%%% 1
+\bibitem[\protect\citeauthoryear{Floreano and Wood}{2015}]{floreano2015science}
+\begin{barticle}
+\bauthor{\bsnm{Floreano}, \binits{D.}},
+\bauthor{\bsnm{Wood}, \binits{R.J.}}:
+\batitle{Science, technology and the future of unmanned aerial vehicles}.
+\bjtitle{Nature}
+\bvolume{521}(\bissue{7553}),
+\bfpage{460}--\blpage{466}
+(\byear{2015})
+\end{barticle}
+\endbibitem
+
+%%% 2
+\bibitem[\protect\citeauthoryear{Meier et~al.}{2011}]{meier2011pixhawk}
+\begin{bchapter}
+\bauthor{\bsnm{Meier}, \binits{L.}},
+\bauthor{\bsnm{Tanskanen}, \binits{P.}},
+\bauthor{\bsnm{Fraundorfer}, \binits{F.}},
+\bauthor{\bsnm{Pollefeys}, \binits{M.}}:
+\bctitle{{PIXHAWK}: A system for autonomous flight using onboard computer
+  vision}.
+In: \bbtitle{Proc. IEEE Int. Conf. Robot. Autom. (ICRA)},
+pp. \bfpage{2992}--\blpage{2997}
+(\byear{2011})
+\end{bchapter}
+\endbibitem
+
+%%% 3
+\bibitem[\protect\citeauthoryear{{ArduPilot Development
+  Team}}{2024}]{ardupilot2024}
+\begin{botherref}
+\oauthor{\bsnm{{ArduPilot Development Team}}}:
+ArduPilot Open Source Autopilot System Documentation.
+Available: \url{https://ardupilot.org/}
+(2024)
+\end{botherref}
+\endbibitem
+
+%%% 4
+\bibitem[\protect\citeauthoryear{{Dronecode Project,
+  Inc.}}{2024}]{qgroundcontrol2024}
+\begin{botherref}
+\oauthor{\bsnm{{Dronecode Project, Inc.}}}:
+QGroundControl - Drone Control and Mission Planning System.
+Available: \url{http://qgroundcontrol.org/}
+(2024)
+\end{botherref}
+\endbibitem
+
+%%% 5
+\bibitem[\protect\citeauthoryear{Oborne}{2024}]{oborne2024mission}
+\begin{botherref}
+\oauthor{\bsnm{Oborne}, \binits{M.}}:
+Mission Planner Ground Control Station.
+Available: \url{https://ardupilot.org/planner/}
+(2024)
+\end{botherref}
+\endbibitem
+
+%%% 6
+\bibitem[\protect\citeauthoryear{Zhou et~al.}{2023}]{zhou2023autognn}
+\begin{barticle}
+\bauthor{\bsnm{Zhou}, \binits{Y.}},
+\bauthor{\bsnm{Chen}, \binits{B.}},
+\bauthor{\bsnm{Wang}, \binits{F.}},
+\bauthor{\bsnm{Zhang}, \binits{H.}}:
+\batitle{{AutoGNN}: Neural architecture search for graph neural networks in
+  dynamic {UAV} path planning}.
+\bjtitle{IEEE Trans. Neural Netw. Learn. Syst.}
+\bvolume{34}(\bissue{9}),
+\bfpage{6120}--\blpage{6132}
+(\byear{2023})
+\end{barticle}
+\endbibitem
+
+%%% 7
+\bibitem[\protect\citeauthoryear{Li et~al.}{2024}]{li2024marl}
+\begin{barticle}
+\bauthor{\bsnm{Li}, \binits{X.}},
+\bauthor{\bsnm{Wang}, \binits{J.}},
+\bauthor{\bsnm{Zhang}, \binits{H.}}:
+\batitle{Multi-agent reinforcement learning for dynamic swarm coordination in
+  contested airspace}.
+\bjtitle{IEEE Robot. Autom. Lett.}
+\bvolume{9}(\bissue{3}),
+\bfpage{2450}--\blpage{2457}
+(\byear{2024})
+\end{barticle}
+\endbibitem
+
+\end{thebibliography}
